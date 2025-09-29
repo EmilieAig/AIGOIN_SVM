@@ -1,0 +1,20 @@
+body .quarto-container { 
+  max-width: 95% !important; 
+  padding-left: 2rem !important;
+  padding-right: 2rem !important;
+}
+#quarto-margin-sidebar { display: none !important; }
+#quarto-content > * { max-width: 100% !important; }
+.page-columns .column-body { width: 100% !important; max-width: 100% !important; }
+
+#quarto-document-content p { text-align: justify; }
+
+.section { 
+  clear: both !important; 
+  position: relative !important;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
