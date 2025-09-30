@@ -244,10 +244,17 @@ window.Quarto = {
   <li><a href="#notations-et-formules" id="toc-notations-et-formules">1.2. Notations et formules</a></li>
   <li><a href="#méthode-support-vector-machine" id="toc-méthode-support-vector-machine">1.3. Méthode Support Vector Machine</a></li>
   </ul></li>
-  <li><a href="#mise-en-oeuvre" id="toc-mise-en-oeuvre">2. Mise en oeuvre</a>
+  <li><a href="#mise-en-oeuvre---iris" id="toc-mise-en-oeuvre---iris">2. Mise en oeuvre - Iris</a>
   <ul>
   <li><a href="#question-2.-noyau-polynomial" id="toc-question-2.-noyau-polynomial">Question 2. Noyau polynomial</a></li>
-  <li><a href="#question-3.-svm-gui" id="toc-question-3.-svm-gui">2.3. Question 3. SVM GUI</a></li>
+  </ul></li>
+  <li><a href="#mise-en-oeuvre---svm-gui" id="toc-mise-en-oeuvre---svm-gui">3. Mise en oeuvre - SVM GUI</a>
+  <ul>
+  <li><a href="#question-3." id="toc-question-3.">3.1. Question 3.</a></li>
+  </ul></li>
+  <li><a href="#mise-en-oeuvre---classification-de-visages" id="toc-mise-en-oeuvre---classification-de-visages">4. Mise en oeuvre - Classification de visages</a>
+  <ul>
+  <li><a href="#question-4." id="toc-question-4.">4.1. Question 4.</a></li>
   </ul></li>
   </ul>
 </nav>
@@ -273,10 +280,10 @@ window.Quarto = {
 <p>Cependant, les SVM ne fournissent pas directement d’estimations de probabilité, il faut les calculer à l’aide de validation croisée.</p>
 </section>
 </section>
-<section id="mise-en-oeuvre" class="level2">
-<h2 class="anchored" data-anchor-id="mise-en-oeuvre">2. Mise en oeuvre</h2>
+<section id="mise-en-oeuvre---iris" class="level2">
+<h2 class="anchored" data-anchor-id="mise-en-oeuvre---iris">2. Mise en oeuvre - Iris</h2>
 <p>Nous commençons tout d’abbord par importer les packages qui nous serons nécessaires pour la suite de ce TP.</p>
-<div id="1b69267e" class="cell" data-execution_count="1">
+<div id="0fc6f0ee" class="cell" data-execution_count="1">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
@@ -303,7 +310,7 @@ window.Quarto = {
 </div>
 <p>Nous cherchons ici à écrire un code qui va classifier la classe <span class="math inline">\(1\)</span> contre la classe <span class="math inline">\(2\)</span> du dataset <code>iris</code> en utilisant les deux premières variables et un noyau linéaire.</p>
 <p>Pour cela, nous commençons par importer les données issues du dataset précédemment cité. Puis nous ne conservons que les deux premières variables.</p>
-<div id="fca78189" class="cell" data-execution_count="2">
+<div id="d21776d1" class="cell" data-execution_count="2">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>iris <span class="op">=</span> datasets.load_iris()</span>
@@ -315,7 +322,7 @@ window.Quarto = {
 </details>
 </div>
 <p>Ensuite, nous devons laisser un quart des données de côté pour évaluer la performance en généralisation du modèle. Dans ces données, nous allons les séparer en un groupe d’entraînement (<span class="math inline">\(75\%\)</span>) et un groupe de test (<span class="math inline">\(25\%\)</span>). Pour ce faire, nous avons décidé d’utiliser la fonction <code>test_train_split</code> qui permet de mélanger automatiquement les données, ce qui est important pour éviter les biais (si les données iris sont ordonnées par classe par exemple). Puis nous avons fixé la graine comme <span class="math inline">\(42\)</span> afin d’assurer la reproductibilité.</p>
-<div id="f104f5e7" class="cell" data-execution_count="3">
+<div id="4cba3700" class="cell" data-execution_count="3">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>X_train, X_test, y_train, y_test <span class="op">=</span> train_test_split(X, </span>
@@ -325,7 +332,7 @@ window.Quarto = {
 </div>
 <p>Maintenant que nos données sont correctement mélangées et séparées aléatoirement, nous allons pouvoir évaluer la performance en généralisation du modèle à partir d’une <em>noyau linéaire</em>. Ce noyau permet de chercher une frontière de décision linéaire (droite en <span class="math inline">\(2\)</span>D).</p>
 <p>Le l’hyperparamètre <span class="math inline">\(C\)</span> que nous devons choisir (le meilleur possible) est la marge, elle doit faire un compromis entre : - <span class="math inline">\(C\)</span> petit : marge large mais tolère plus d’erreurs. - <span class="math inline">\(C\)</span> grand : marge étroitre mais moins d’erreurs d’entraînement (risque d’overfitting).</p>
-<div id="287b92c0" class="cell" data-execution_count="4">
+<div id="b6236040" class="cell" data-execution_count="4">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># fit the model and select the best hyperparameter C</span></span>
@@ -354,7 +361,7 @@ window.Quarto = {
 <section id="question-2.-noyau-polynomial" class="level3">
 <h3 class="anchored" data-anchor-id="question-2.-noyau-polynomial">Question 2. Noyau polynomial</h3>
 <p>Afin de comparer nos performances de généralisation du modèle entre plusieurs noyaux, nous allons faire un SVM basé sur un noyau polynomial.</p>
-<div id="b4dfd680" class="cell" data-execution_count="5">
+<div id="406897f6" class="cell" data-execution_count="5">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Q2 polynomial kernel</span></span>
@@ -388,7 +395,7 @@ Generalization score for polynomial kernel: 0.7466666666666667, 0.68</code></pre
 <p>Ainsi, cette sélection automatique du degré <span class="math inline">\(1\)</span> par la validation croisée indique que la forntière de décision optimale pour séparer les classes <span class="math inline">\(1\)</span> et <span class="math inline">\(2\)</span> d’Iris (avec les deux premières variables) est effectivement bien linéaire. Les degrés supérieurs testés ont sûrement donné de moins bonnes performances, probablement en raison d’un surapprentissage.</p>
 <p>Cela suggère que les données de ces deux classes d’Iris sont linéairement séparables dans l’espace défini par les deux premières variables, ce qui justifie l’efficiaté du noyau linéaire pour ce problème de classification.</p>
 <p>Afin de vérifier ces résultats, nous allons les tracer en utilisant <code>frontiere</code>.</p>
-<div id="ef1294b0" class="cell" data-execution_count="6">
+<div id="77042cb5" class="cell" data-execution_count="6">
 <details class="code-fold">
 <summary>Code</summary>
 <div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># display your results using frontiere (svm_source.py)</span></span>
@@ -428,8 +435,11 @@ Generalization score for polynomial kernel: 0.7466666666666667, 0.68</code></pre
 <p>Nous voyons que la frontière de décision est une droite linéaire qui sépare l’espace en deux régions distinctes (bleue et orange). La distribution des données montre qu’il n’y a pas de courbure complexe visible, ce qui justifie que les noyaux polynomiaux de degré supérieurs n’ont pas été sélectionnés.</p>
 <p>De plus, nous observons un chevauchement partiel entre les deux classes (les points bleus et oranges sont mélangés dans certaines zones) ce qui explique pourquoi les scores de classification ne sont pas parfaits ($75% et <span class="math inline">\(68\%\)</span>).</p>
 </section>
-<section id="question-3.-svm-gui" class="level3">
-<h3 class="anchored" data-anchor-id="question-3.-svm-gui">2.3. Question 3. SVM GUI</h3>
+</section>
+<section id="mise-en-oeuvre---svm-gui" class="level2">
+<h2 class="anchored" data-anchor-id="mise-en-oeuvre---svm-gui">3. Mise en oeuvre - SVM GUI</h2>
+<section id="question-3." class="level3">
+<h3 class="anchored" data-anchor-id="question-3.">3.1. Question 3.</h3>
 <p>Dans cette question, nous nous basons sur une application qui permet, en temps réel, d’évaluer l’impact du choix du noyau et du paramètre de régularisation <span class="math inline">\(C\)</span>.</p>
 <p>Pour commencer, nous lançons le script svm_script.py. Ensuite, nous créons un dataset très déséquilibré avec <span class="math inline">\(35\)</span> points bleus (<span class="math inline">\(92\%\)</span>) et <span class="math inline">\(3\)</span> points noirs (<span class="math inline">\(8\%\)</span>) en essayant de marquer la différence entre la localisation des points bleus et noirs (tout en gardant des débordements).</p>
 <div id="fig-svm" class="quarto-layout-panel">
@@ -453,9 +463,64 @@ Figure&nbsp;1: Influence du paramètre C sur un dataset déséquilibré avec noy
 <li>Pour <span class="math inline">\(C = 0,1\)</span> : l’hyperplan est quasiment à la verticale, il n’y a que deux points noirs qui sont ensemble et le troisième est mal classé.</li>
 <li>Pour <span class="math inline">\(C = 0,01\)</span> : l’hyperplan est également à la verticale, il a l’air d’ignorer les points noirs et se contente de séparer les points bleus.</li>
 </ul>
-<p>Nous pouvons voir que les <span class="math inline">\(C\)</span> élevés (<span class="math inline">\(10\)</span> et <span class="math inline">\(1\)</span>) semblent très proches, de mêmes que les <span class="math inline">\(C\)</span> faibles (<span class="math inline">\(0,1\)</span> et <span class="math inline">\(0,01\)</span>). Nous voyons que les premiers prennent bien en compte les points minoritaires et les classes de la bonne manière. A contrario, les deux derniers semblent très tolérant aux erreurs : comme les bleus sont majoritaires, ils optimisent uniquement pour eux et abandonnent les noirs.</p>
+<p>Nous pouvons voir que les <span class="math inline">\(C\)</span> élevés (<span class="math inline">\(10\)</span> et <span class="math inline">\(1\)</span>) semblent proches, de mêmes que les <span class="math inline">\(C\)</span> faibles (<span class="math inline">\(0,1\)</span> et <span class="math inline">\(0,01\)</span>). Nous voyons que les premiers prennent bien en compte les points minoritaires et les classes de la bonne manière. A contrario, les deux derniers semblent très tolérant aux erreurs : comme les bleus sont majoritaires, ils optimisent uniquement pour eux et abandonnent les noirs.</p>
 <p>Ainsi, nous pouvons en conclure que, lorsque nous diminuons <span class="math inline">\(C\)</span> sur un dataset déséquilibré avec un noyau linéaire, l’hyperplan se déplace pour favoriser la bonne classification de la classe majoritaire et pour maximiser la marge, au détriment de la classe minoritaire. Avec <span class="math inline">\(C\)</span> très faible, le modèle ignore presque complétement les points noirs.</p>
 <p>Cela s’expliquer car le paramètre <span class="math inline">\(C\)</span> contrôle le coût des erreurs de classification. Avec <span class="math inline">\(C\)</span> faible, le modèle préfère un hyperplan simple (avec une grande marge) quitte à faire des erreurs. Sur des données déséquilibrés, ces erreurs affectent principalement la classe minoritaire car elle a moins d’influence sur l’optimisation.</p>
+</section>
+</section>
+<section id="mise-en-oeuvre---classification-de-visages" class="level2">
+<h2 class="anchored" data-anchor-id="mise-en-oeuvre---classification-de-visages">4. Mise en oeuvre - Classification de visages</h2>
+<p>Dans cette partie, nous utilisons une <a href="http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz">base de données</a> extraite de “Labeled Faces in the Wild” afin d’exposer un problème de classification de visages.</p>
+<p>Nous commençons donc par télécharger la base de données qui nous intéresse.</p>
+<div id="e213e873" class="cell" data-execution_count="7">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Download the data and unzip; then load it as numpy arrays</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>lfw_people <span class="op">=</span> fetch_lfw_people(min_faces_per_person<span class="op">=</span><span class="dv">70</span>, resize<span class="op">=</span><span class="fl">0.4</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>                              color<span class="op">=</span><span class="va">True</span>, funneled<span class="op">=</span><span class="va">False</span>, slice_<span class="op">=</span><span class="va">None</span>,</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                              download_if_missing<span class="op">=</span><span class="va">True</span>)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co"># data_home='.'</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="co"># introspect the images arrays to find the shapes (for plotting)</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>images <span class="op">=</span> lfw_people.images</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>n_samples, h, w, n_colors <span class="op">=</span> images.shape</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="co"># the label to predict is the id of the person</span></span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a>target_names <span class="op">=</span> lfw_people.target_names.tolist()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Puis, nous choisissons une paire de personnes à classer : Donald Rumsfeld et Colin Powell.</p>
+<div id="39dd46fc" class="cell" data-execution_count="8">
+<details class="code-fold">
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Pick a pair to classify such as</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>names <span class="op">=</span> [<span class="st">'Donald Rumsfeld'</span>, <span class="st">'Colin Powell'</span>]</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>idx0 <span class="op">=</span> (lfw_people.target <span class="op">==</span> target_names.index(names[<span class="dv">0</span>]))</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>idx1 <span class="op">=</span> (lfw_people.target <span class="op">==</span> target_names.index(names[<span class="dv">1</span>]))</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>images <span class="op">=</span> np.r_[images[idx0], images[idx1]]</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>n_samples <span class="op">=</span> images.shape[<span class="dv">0</span>]</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>y <span class="op">=</span> np.r_[np.zeros(np.<span class="bu">sum</span>(idx0)), np.ones(np.<span class="bu">sum</span>(idx1))].astype(<span class="bu">int</span>)</span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a><span class="co"># plot a sample set of the data</span></span>
+<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>plot_gallery(images, np.arange(<span class="dv">12</span>))</span>
+<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a>plt.show()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="script_files/figure-html/cell-9-output-1.png" class="img-fluid figure-img"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Et nous continous en divisant les données en deux sous-ensembles : un ensemble d’entraînement (train) et un ensemble de test (test).</p>
+<section id="question-4." class="level3">
+<h3 class="anchored" data-anchor-id="question-4.">4.1. Question 4.</h3>
+<p>…</p>
+<p>On peut voir qu’il y a <span class="math inline">\(91,6\%\)</span> de précision sur l’ensemble de test ce qui est une très bonne performance pour la classification de nos visages. Cela signifie que le modèle préidt correctement l’identité de la personne dans <span class="math inline">\(92\%\)</span> des cas.</p>
+<p>De plus, nous voyons que la courbe montre trois zones distinctes : - Pour <span class="math inline">\(C &lt; 10^{-4}\)</span> : les scores sont faibles. La régularisation est excessive,le modèle est trop simple et sous-apprend. De plus, la marge doit être trop large ce qui permet trop d’erreurs. - Pour <span class="math inline">\(10^{-4} ≤ C ≤ 10^{-3}\)</span> : les scores augmentent jusqu’à un pic optimal (pour <span class="math inline">\(C = 0,001\)</span>). Nous avons le meilleur compromis biais-variance car le modèle capture la structure des données sans sous ou sur apprendre. - Pour <span class="math inline">\(C &gt; 10^{-3}\)</span> : les scores diminuent légèrement et se stabilisent en un plateau. La performance n’augente plus car le modèle est déhç suffisamment complexe. Donc, augmenter <span class="math inline">\(C\)</span> ne sert plus à rien et nous risquons de faire apparaître du sur-apprentissage.</p>
+<p>Ainsi, le SVM avec <span class="math inline">\(C = 0.001\)</span> et le noyau linéaire offre une très bonne performance (<span class="math inline">\(91.6%\)</span>) pour cette tâche de reconnaissance faciale. Il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu’un <span class="math inline">\(C\)</span> pas trop grand aide à ignorer ce bruit. En effet, le fait que la performance n’augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l’espace des caractéristiques.</p>
 </section>
 </section>
 

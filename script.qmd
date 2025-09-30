@@ -37,7 +37,7 @@ Leurs avantages sont qu'elles sont efficaces dans les espaces en grande dimensio
 
 Cependant, les SVM ne fournissent pas directement d'estimations de probabilité, il faut les calculer à l'aide de validation croisée.
 
-## 2. Mise en oeuvre
+## 2. Mise en oeuvre - Iris
 
 Nous commençons tout d'abbord par importer les packages qui nous serons nécessaires pour la suite de ce TP.
 
@@ -202,7 +202,9 @@ Nous voyons que la frontière de décision est une droite linéaire qui sépare 
 
 De plus, nous observons un chevauchement partiel entre les deux classes (les points bleus et oranges sont mélangés dans certaines zones) ce qui explique pourquoi les scores de classification ne sont pas parfaits ($75\% et $68\%$).
 
-### 2.3. Question 3. SVM GUI
+## 3. Mise en oeuvre - SVM GUI
+
+### 3.1. Question 3.
 
 Dans cette question, nous nous basons sur une application qui permet, en temps réel, d'évaluer l'impact du choix du noyau et du paramètre de régularisation $C$.
 
@@ -230,4 +232,64 @@ Nous pouvons voir que les $C$ élevés ($10$ et $1$) semblent proches, de mêmes
 Ainsi, nous pouvons en conclure que, lorsque nous diminuons $C$ sur un dataset déséquilibré avec un noyau linéaire, l'hyperplan se déplace pour favoriser la bonne classification de la classe majoritaire et pour maximiser la marge, au détriment de la classe minoritaire. Avec $C$ très faible, le modèle ignore presque complétement les points noirs.
 
 Cela s'expliquer car le paramètre $C$ contrôle le coût des erreurs de classification. Avec $C$ faible, le modèle préfère un hyperplan simple (avec une grande marge) quitte à faire des erreurs. Sur des données déséquilibrés, ces erreurs affectent principalement la classe minoritaire car elle a moins d'influence sur l'optimisation.
+
+## 4. Mise en oeuvre - Classification de visages
+
+Dans cette partie, nous utilisons une [base de données]( http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz) extraite de "Labeled Faces in the Wild" afin d'exposer un problème de classification de visages.
+
+Nous commençons donc par télécharger la base de données qui nous intéresse.
+
+```{python}
+
+# Download the data and unzip; then load it as numpy arrays
+lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4,
+                              color=True, funneled=False, slice_=None,
+                              download_if_missing=True)
+# data_home='.'
+
+# introspect the images arrays to find the shapes (for plotting)
+images = lfw_people.images
+n_samples, h, w, n_colors = images.shape
+
+# the label to predict is the id of the person
+target_names = lfw_people.target_names.tolist()
+
+```
+
+Puis, nous choisissons une paire de personnes à classer : Donald Rumsfeld et Colin Powell.
+
+```{python}
+
+# Pick a pair to classify such as
+names = ['Donald Rumsfeld', 'Colin Powell']
+
+idx0 = (lfw_people.target == target_names.index(names[0]))
+idx1 = (lfw_people.target == target_names.index(names[1]))
+images = np.r_[images[idx0], images[idx1]]
+n_samples = images.shape[0]
+y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(int)
+
+# plot a sample set of the data
+plot_gallery(images, np.arange(12))
+plt.show()
+
+```
+
+Et nous continous en divisant les données en deux sous-ensembles : un ensemble d'entraînement (train) et un ensemble de test (test).
+
+### 4.1. Question 4.
+
+...
+
+
+On peut voir qu'il y a $91,6\%$ de précision sur l'ensemble de test ce qui est une très bonne performance pour la classification de nos visages. Cela signifie que le modèle préidt correctement l'identité de la personne dans $92\%$ des cas.
+
+De plus, nous voyons que la courbe montre trois zones distinctes : 
+- Pour $C < 10^{-4}$ : les scores sont faibles. La régularisation est excessive,le modèle est trop simple et sous-apprend. De plus, la marge doit être trop large ce qui permet trop d'erreurs.
+- Pour $10^{-4} ≤ C ≤ 10^{-3}$ : les scores augmentent jusqu'à un pic optimal (pour $C = 0,001$). Nous avons le meilleur compromis biais-variance car le modèle capture la structure des données sans sous ou sur apprendre.
+- Pour $C > 10^{-3}$ : les scores diminuent légèrement et se stabilisent en un plateau. La performance n'augente plus car le modèle est déhç suffisamment complexe. Donc, augmenter $C$ ne sert plus à rien et nous risquons de faire apparaître du sur-apprentissage.
+
+Ainsi, le SVM avec $C = 0.001$ et le noyau linéaire offre une très bonne performance ($91.6%$) pour cette tâche de reconnaissance faciale. Il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu'un $C$ pas trop grand aide à ignorer ce bruit. En effet, le fait que la performance n'augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l'espace des caractéristiques.
+
+
 

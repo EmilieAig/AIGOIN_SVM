@@ -202,14 +202,13 @@ target_names = lfw_people.target_names.tolist()
 
 ####################################################################
 # Pick a pair to classify such as
-names = ['Tony Blair', 'Colin Powell']
-# names = ['Donald Rumsfeld', 'Colin Powell']
+names = ['Donald Rumsfeld', 'Colin Powell']
 
 idx0 = (lfw_people.target == target_names.index(names[0]))
 idx1 = (lfw_people.target == target_names.index(names[1]))
 images = np.r_[images[idx0], images[idx1]]
 n_samples = images.shape[0]
-y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(np.int)
+y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(int)
 
 # plot a sample set of the data
 plot_gallery(images, np.arange(12))
@@ -247,6 +246,9 @@ images_train, images_test = images[
 ####################################################################
 # Quantitative evaluation of the model quality on the test set
 
+
+
+
 #%%
 # Q4
 print("--- Linear kernel ---")
@@ -257,11 +259,14 @@ t0 = time()
 Cs = 10. ** np.arange(-5, 6)
 scores = []
 for C in Cs:
-    # TODO ...
+    clf_temp = svm.SVC(kernel='linear', C=C)
+    clf_temp.fit(X_train, y_train)
+    scores.append(clf_temp.score(X_test, y_test))
 
 ind = np.argmax(scores)
 print("Best C: {}".format(Cs[ind]))
 
+# Visualiser la courbe score en fonction de C
 plt.figure()
 plt.plot(Cs, scores)
 plt.xlabel("Parametres de regularisation C")
@@ -273,6 +278,8 @@ print("Best score: {}".format(np.max(scores)))
 
 print("Predicting the people names on the testing set")
 t0 = time()
+
+
 
 #%%
 # predict labels for the X_test images with the best classifier
