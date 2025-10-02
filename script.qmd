@@ -1,17 +1,19 @@
 ---
+title: " "
 format:
   html:
     code-fold: true
     include-before-body: [mise_en_page/page_garde.html]
-    css: styles.css
     toc: true
     toc-location: body
     toc-title: "Sommaire"
+    number-sections: false
     margin-left: -10em
     margin-right: -20em
     max-width: 1400px
 jupyter: aigoin_svm
 ---
+
 
 ## 1. Introduction
 
@@ -73,7 +75,7 @@ plt.style.use('ggplot')
 
 ```
 
-### 2.1. Question 1. Noyau linéaire
+### 2.1. Question 1.
 
 Nous cherchons ici à développer un code qui va classifier la classe $1$ contre la classe $2$ du dataset `iris` en utilisant les deux premières variables et un noyau linéaire.
 
@@ -121,7 +123,7 @@ parameters = {'kernel': ['linear'],               # noyau linéaire
 
 # Création du modèle SVM et recherche du meilleur hyperparamètre
 svr = svm.SVC()
-clf_linear = GridSearchCV(svr, parameters)  # teste toutes les combinaisons de paramètres
+clf_linear = GridSearchCV(svr, parameters) # teste toutes les combinaisons de paramètres
 clf_linear.fit(X_train, y_train)       # validation croisée
 
 # Affichage des scores
@@ -141,13 +143,13 @@ Cependant, le fait qu'il n'y ait qu'une diminution de $7\%$ entre les données d
 
 Donc, comme les scores ne sont pas très élevés mais restent assez proches les uns des autres, nous pouvons en déduire que le modèle à noyau linéaire généralise moyennement. Le problème pourrait venir du fait que les classes ne se chevauchent probablement pas de manière linéaire et, comme nous utilisons un noyau linéaire, nous traçons une droite pour faire la séparation. De plus, peut être que les deux premières variables ne suffisent pas à bien discriminer les deux espèces.
 
-### Question 2. Noyau polynomial
+### 2.2. Question 2. Noyau polynomial
 
 Afin de comparer nos performances de généralisation du modèle entre plusieurs noyaux, nous allons faire un SVM basé sur un noyau polynomial.
 
 ```{python}
 
-# Configuration des hyperparamètres pour le noyau polynomial
+""" # Configuration des hyperparamètres pour le noyau polynomial
 Cs = list(np.logspace(-3, 3, 5)) # teste 5 valeurs de C (de 0.001 à 1000)
 gammas = 10. ** np.arange(1, 2)
 degrees = np.r_[1, 2, 3]         # polynômes de degrés 1, 2, 3
@@ -160,14 +162,15 @@ parameters = {'kernel': ['poly'],   # noyau polynomial
 
 # Entraînement et sélection des meilleurs hyperparamètres
 svr_poly = svm.SVC()    # vecteur vide
-clf_poly = GridSearchCV(svr_poly, parameters)   # teste les combinaisons avec validation croisée
+clf_poly = GridSearchCV(svr_poly, 
+                        parameters) # teste les combinaisons (validation croisée)
 clf_poly.fit(X_train, y_train) # entraine les modèles et sélectionne le meilleur
 
 # Affichage des meilleurs paramètres trouvés
 print(clf_poly.best_params_)
 print('Generalization score for polynomial kernel: %s, %s' %
       (clf_poly.score(X_train, y_train),
-       clf_poly.score(X_test, y_test)))
+       clf_poly.score(X_test, y_test))) """
 
 ```
 
@@ -185,7 +188,7 @@ Afin de vérifier ces résultats, nous allons les tracer en utilisant `frontiere
 
 ```{python}
 
-# Visualisation des frontières de décision (svm_source.py)
+""" # Visualisation des frontières de décision (svm_source.py)
 def f_linear(xx):
     return clf_linear.predict(xx.reshape(1, -1))
 
@@ -212,7 +215,7 @@ frontiere(f_poly, X, y)
 plt.title("polynomial kernel")
 
 plt.tight_layout()
-plt.draw()
+plt.draw() """
 
 ```
 
@@ -222,11 +225,13 @@ Nous voyons que la frontière de décision est une droite linéaire qui sépare 
 
 De plus, nous observons un chevauchement partiel entre les deux classes (les points bleus et oranges sont mélangés dans certaines zones) ce qui explique pourquoi les scores de classification ne sont pas parfaits ($75\% et $68\%$).
 
+<a id="part3"></a>
+
 ## 3. Mise en oeuvre - SVM GUI
 
 ### 3.1. Question 3.
 
-Dans cette question, nous nous basons sur une application qui permet, en temps réel, d'évaluer l'impact du choix du noyau et du paramètre de régularisation $C$.
+Dans cette question, nous nous basons sur une [application](https://scikit-learn.org/1.2/auto_examples/applications/svm_gui.html) qui permet, en temps réel, d'évaluer l'impact du choix du noyau et du paramètre de régularisation $C$.
 
 Pour commencer, nous lançons le script svm_script.py. Ensuite, nous créons un dataset très déséquilibré avec $35$ points bleus ($92\%$) et $3$ points noirs ($8\%$) en essayant de marquer la différence entre la localisation des points bleus et noirs (tout en gardant des débordements).
 
@@ -258,9 +263,11 @@ Cela s'explique car le paramètre $C$ contrôle le coût des erreurs de classifi
 
 Ce phénomène illustre donc un problème critique en apprentissage automatique sur données déséquilibrées. Lorsque $C$ diminue, le modèle privilégie une marge large (simplicité) au détriment de la précision sur la classe minoritaire.
 
+<a id="part4"></a>
+
 ## 4. Mise en oeuvre - Classification de visages
 
-Dans cette partie, nous utilisons une [base de données]( http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz) extraite de "Labeled Faces in the Wild" afin d'exposer un problème de classification de visages.
+Dans cette partie, nous utilisons une [base de données](https://scikit-learn.org/0.19/datasets/labeled_faces.html) extraite de "Labeled Faces in the Wild" afin d'exposer un problème de classification de visages.
 
 Nous commençons donc par télécharger la base de données qui nous intéresse.
 
@@ -310,12 +317,12 @@ Nous observons quelle personne entre les deux étudiées est la plus représent�
 
 # Vérifier la distribution des classes
 unique, counts = np.unique(y, return_counts=True)
-class_distribution = dict(zip(unique, counts))
+class_distrib = dict(zip(unique, counts))
 
 # Affichage des résultats
 print("Distribution des classes :")
-print(f"Classe 0 ({names[0]}) : {class_distribution[0]} images ({class_distribution[0]/len(y)*100:.1f}%)")
-print(f"Classe 1 ({names[1]}) : {class_distribution[1]} images ({class_distribution[1]/len(y)*100:.1f}%)")
+print(f"{names[0]} : {class_distrib[0]} images ({class_distrib[0]/len(y)*100:.1f}%)")
+print(f"{names[1]} : {class_distrib[1]} images ({class_distrib[1]/len(y)*100:.1f}%)")
 
 ```
 
@@ -343,7 +350,6 @@ images_train, images_test = images[
     train_idx, :, :, :], images[test_idx, :, :, :]
 
 ```
-
 
 ### 4.1. Question 4.
 
@@ -403,7 +409,6 @@ Ainsi, le SVM avec $C = 0.001$ et le noyau linéaire offre une très bonne perfo
 De plus, nous pouvons en déduire qu'il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu'un $C$ pas trop grand aide à ignorer ce bruit. En effet, le fait que la performance n'augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l'espace des caractéristiques.
 
 Ainsi, à partir de ce classificateur optimal, nous cherchons maintenant à prédire les étiquettes pour les images $X_test$.
-
 
 ```{python}
 
@@ -536,9 +541,9 @@ Nous avons écrit le code suivant pour un $n = 20$ et l'avons ensuite modifié e
 
 ```{python}
 
-# Décommenter le code pour le faire tourner (attention, environ 20 minutes de chargement)
+""" # Décommenter le code pour le faire tourner (attention, environ 20 minutes de chargement)
 
-""" print("Score apres reduction de dimension")
+print("Score apres reduction de dimension")
 
 # Nombre de composantes principales à conserver
 n_components = 20  # jouer avec ce parametre
@@ -561,9 +566,12 @@ Nous avons obtenu les scores suivants :
 | Nombre de composantes | Score Train | Score Test | Écart |
 |:---------------------:|:-----------:|:----------:|:-----:|
 | 2                     | 0,635       | 0,687      | 0,52%  |
-| 5                     | 0,       | 0,      | x.x%  |
+| 5                     | 0,635       | 0,687      | 0,52%  |
+| 10                    | 0,635       | 0,687      | 0,52%  |
 | 15                    | 0,       | 0,      | %  |
 | 20                    | 0,       | 0,      | %  |
+| 25                    | 0,       | 0,      | %  |
+| 30                    | 0,       | 0,      | %  |
 | 50                    | 0,       | 0,      | x.x%  |
 | 100                   | 0,843       | 0,570      | 2,73%  |
 | 200                   | 1,000       | 0,603      | 3,97%  |
@@ -581,3 +589,9 @@ Il existe un biais dans notre prétraitement des données. En effet, au niveau d
 La bonne pratique serait de standardiser en utilisant uniquement les données, et statistiques associées, de l'échantillon d'entraînement.
 
 ## 5. Conclusion
+
+## 6. Sources
+
+Afin de réaliser ce TP, nous nous sommes basés sur plusieurs sources. Tout d'abord, nous avons utilisé la base de code donnée par B.Bensaid, B. Charlier et J. Salmon. De plus, nous avons utilisé le fichier définissant des fonctions `svm_source.py` écrit par J. Salmon, A. Gramfort et C. Vernade.
+
+Ensuite, afin de réaliser la [partie 3](#part3), nous nous sommes servis du code disponible via [ce lien](https://scikit-learn.org/1.2/auto_examples/applications/svm_gui.html) et écrit par P. Prettenhoer. En ce qui concerne la [partie 4](#part4), nous nous sommes servis de la base de données disponible via [ce lien](https://scikit-learn.org/0.19/datasets/labeled_faces.html). 
