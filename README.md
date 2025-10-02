@@ -24,7 +24,6 @@ Pour lancer le projet :
 
 L'arborescence du dépôt git est la suivante :
 
-.
 ├── graphiques/             # Figures générées et affichées dans le fichier script.html
 │   ├── C1.png
 │   ├── C01.png
