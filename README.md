@@ -30,18 +30,20 @@ L'arborescence du dépôt git est la suivante :
 │   ├── C01.png
 │   ├── C001.png
 │   └── C10.png
-├── mise_en_page/            # Fichiers de styles et logos pour la page de garde dans le fichier script.hmtl
+├── mise_en_page/           # Fichiers de styles et logos pour la page de garde dans le fichier script.hmtl
 │   ├── Logo_SSD.png
 │   ├── Logo_univMtp.png
 │   └── page_garde.html
+├── scripts_Python/         # Fichiers de style
+    ├── svm_gui.py          # Fichier à lancer pour répondre à la question numéro 3 du TP (source https://scikit-learn.org/1.2/auto_examples/applications/svm_gui.html)
+    ├── svm_script.py       # Fichier de code à lancer pour avoir les résultats des questions du TP sans explications (base de code de B.Bensaid, B. Charlier, J. Salmon)
+    └── svm_source.py       # Fichier utilisé dans svm_script.py et script.qmd contenant des fonctions nécessaires pour réaliser des travaux SVM (auteurs J. Salmon, A. Gramfort, C. Vernade)
+├── .gitignore              # Fichier permettant d'ignorer les fichiers non utiles 
 ├── README.md
 ├── requirements.txt        # Fichier à lancer pour installer les packages nécessaire pour faire tourner le code
 ├── script.html             # Rendu final du TP avec le code et les explications
-├── script.qmd              # Fichier à lancer pour re générer le rendu final script.html
-└── scripts_Python/           # Fichiers de style
-    ├── svm_gui.py              # Fichier à lancer pour répondre à la question numéro 3 du TP (source https://scikit-learn.org/1.2/auto_examples/applications/svm_gui.html)
-    ├── svm_script.py           # Fichier de code à lancer pour avoir les résultats des questions du TP sans explications (base de code de B.Bensaid, B. Charlier, J. Salmon)
-    └── svm_source.py           # Fichier utilisé dans svm_script.py et script.qmd contenant des fonctions nécessaires pour réaliser des travaux SVM (auteurs J. Salmon, A. Gramfort, C. Vernade)
+└── script.qmd              # Fichier à lancer pour re générer le rendu final script.html
+
 ```         
 
 Bonne lecture !
