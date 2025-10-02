@@ -1,8 +1,10 @@
 # Fichiers Python
 __pycache__/
 *.py[cod]
+*$py.class
 *.pyo
 *.pyd
+
 
 # Virtual envs
 .venv/
@@ -15,4 +17,7 @@ ENV/
 
 # VS Code
 .vscode/
+
+# Dossier de scripts
+script_files/
 

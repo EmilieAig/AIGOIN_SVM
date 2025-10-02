@@ -1,4 +1,4 @@
-#%% Importer les librairies
+#%% Import libraries
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -92,15 +92,15 @@ iris = datasets.load_iris()
 X = iris.data
 X = scaler.fit_transform(X)
 y = iris.target
-X = X[y != 0, :2]          # garder les deux premières colonnes et enlever la 0
-y = y[y != 0]              # garder la classe 1 et 2
+X = X[y != 0, :2]          # keep the first two columns and remove the 0
+y = y[y != 0]              # keep grades 1 and 2
 
 # split train test (say 25% for the test)
 # You can shuffle and then separate or you can just use train_test_split 
 #whithout shuffling (in that case fix the random state (say to 42) for reproductibility)
 X_train, X_test, y_train, y_test = train_test_split(X, 
                                                     y, 
-                                                    test_size = 0.25, random_state = 42) # graine
+                                                    test_size = 0.25, random_state = 42) # seed
 
 ###############################################################################
 # fit the model with linear vs polynomial kernel
@@ -113,8 +113,8 @@ X_train, X_test, y_train, y_test = train_test_split(X,
 parameters = {'kernel': ['linear'], 
               'C': list(np.logspace(-3, 3, 200))} # teste 200 valeurs de C
 svr = svm.SVC()
-clf_linear = GridSearchCV(svr, parameters)  # teste toutes les combinaisons de paramètres
-clf_linear.fit(X_train, y_train)     # validation croisée
+clf_linear = GridSearchCV(svr, parameters)  # tests all combinations of parameters
+clf_linear.fit(X_train, y_train)     # cross validation
 
 # compute the score
 
@@ -170,7 +170,7 @@ plt.draw()
 #               SVM GUI
 ###############################################################################
 
-# Fichier python svm_gui.py
+# File: python svm_gui.py
 
 
 #%%
@@ -236,6 +236,7 @@ X /= np.std(X, axis=0)
 # X_train, X_test, y_train, y_test = \
 #    train_test_split(X, y, test_size=0.5, random_state=0)
 
+np.random.seed(42)     # ajout d'une graine pour reproductibilité
 indices = np.random.permutation(X.shape[0])
 train_idx, test_idx = indices[:X.shape[0] // 2], indices[X.shape[0] // 2:]
 X_train, X_test = X[train_idx, :], X[test_idx, :]
@@ -245,9 +246,6 @@ images_train, images_test = images[
 
 ####################################################################
 # Quantitative evaluation of the model quality on the test set
-
-
-
 
 #%%
 # Q4
@@ -279,11 +277,11 @@ print("Best score: {}".format(np.max(scores)))
 print("Predicting the people names on the testing set")
 t0 = time()
 
-
-
 #%%
 # predict labels for the X_test images with the best classifier
-# clf =  ... TODO
+clf =  svm.SVC(kernel='linear', C=Cs[ind])
+clf.fit(X_train, y_train)
+y_pred = clf.predict(X_test)
 
 print("done in %0.3fs" % (time() - t0))
 # The chance level is the accuracy that will be reached when constantly predicting the majority class.
@@ -311,6 +309,7 @@ plt.show()
 # Q5
 
 def run_svm_cv(_X, _y):
+    np.random.seed(42) # seed
     _indices = np.random.permutation(_X.shape[0])
     _train_idx, _test_idx = _indices[:_X.shape[0] // 2], _indices[_X.shape[0] // 2:]
     _X_train, _X_test = _X[_train_idx, :], _X[_test_idx, :]
@@ -325,22 +324,28 @@ def run_svm_cv(_X, _y):
           (_clf_linear.score(_X_train, _y_train), _clf_linear.score(_X_test, _y_test)))
 
 print("Score sans variable de nuisance")
-# TODO ... use run_svm_cv on original data
+run_svm_cv(X, y)
 
 print("Score avec variable de nuisance")
 n_features = X.shape[1]
-# On rajoute des variables de nuisances
+# Add nuisance variables
 sigma = 1
 noise = sigma * np.random.randn(n_samples, 300, ) 
 #with gaussian coefficients of std sigma
 X_noisy = np.concatenate((X, noise), axis=1)
+np.random.seed(42) # seed
 X_noisy = X_noisy[np.random.permutation(X.shape[0])]
-# TODO ... use run_svm_cv on noisy data
+run_svm_cv(X_noisy, y)
+
+
 
 #%%
 # Q6
 print("Score apres reduction de dimension")
 
-n_components = 20  # jouer avec ce parametre
-pca = PCA(n_components=n_components).fit(X_noisy)
-# ... TODO Apply PCA and run_svm to the noisy data
+n_components = 5  # jouer avec ce parametre
+pca = PCA(n_components=n_components, random_state=42).fit(X_noisy)
+X_noisy_pca = pca.transform(X_noisy)
+run_svm_cv(X_noisy_pca, y)
+
+# %%

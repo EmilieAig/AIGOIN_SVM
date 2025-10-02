@@ -23,9 +23,12 @@ L'objectif de ce TP est de mettre en pratique la technique de classification Sup
 
 Nous rappelons les définitions, notations et formules suivantes : 
 
-- $\mathcal Y$ : ensemble des étiquettes...
+- $\mathcal{Y}$ : ensemble des étiquettes (labels), usuellement $\mathcal{Y} = \{-1, 1\}$ pour la classification binaire
+- $x = (x_1, \ldots, x_p) \in \mathcal{X} \subset \mathbb{R}^p$ : une observation (ou exemple) décrite par $p$ variables
+- $\mathcal{D}_n = \{(x_i, y_i), i = 1, \ldots, n\}$ : ensemble d'apprentissage contenant $n$ exemples étiquetés
+- $\hat{f} : \mathcal{X} \to \{-1, 1\}$ : fonction de classification apprise à partir de $\mathcal{D}_n$
 
-*Overfitting* : 
+**Overfitting (surapprentissage)** : phénomène où le modèle mémorise les données d'entraînement au lieu d'apprendre des patterns généralisables, problème de généralisation et ne peut pas reconnaître d'autres données. Cela se traduit par une excellente performance sur les données d'entraînement mais une performance dégradée sur les données de test.
 
 ### 1.3. Méthode Support Vector Machine
 
@@ -43,10 +46,11 @@ Nous commençons tout d'abbord par importer les packages qui nous serons nécess
 
 ```{python}
 
+# Importation des bibliothèques
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.svm import SVC
 
+from sklearn.svm import SVC
 from svm_source import *
 from sklearn import svm
 from sklearn import datasets
@@ -57,29 +61,37 @@ from sklearn.datasets import fetch_lfw_people
 from sklearn.decomposition import PCA
 from time import time
 
+# Initialisation du scaler pour normaliser les données
 scaler = StandardScaler()
 
+# Ignorer les avertissements pour une sortie plus propre
 import warnings
 warnings.filterwarnings("ignore")
 
+# Style de graphiques
 plt.style.use('ggplot')
 
 ```
 
 ### 2.1. Question 1. Noyau linéaire
 
-Nous cherchons ici à écrire un code qui va classifier la classe $1$ contre la classe $2$ du dataset `iris` en utilisant les deux premières variables et un noyau linéaire.
+Nous cherchons ici à développer un code qui va classifier la classe $1$ contre la classe $2$ du dataset `iris` en utilisant les deux premières variables et un noyau linéaire.
 
-Pour cela, nous commençons par importer les données issues du dataset précédemment cité. Puis nous ne conservons que les deux premières variables.
+Pour cela, nous commençons par importer les données issues du jeu de données précédemment cité. Puis nous ne conservons que les deux premières variables.
 
 ```{python}
 
+# Chargement du dataset Iris
 iris = datasets.load_iris()
 X = iris.data
+
+# Normalisation des données (moyenne=0, écart-type=1)
 X = scaler.fit_transform(X)
 y = iris.target
-X = X[y != 0, :2]          # garder les deux premières colonnes et enlever la 0
-y = y[y != 0]              # garder la classe 1 et 2
+
+# Sélection des données (que classes 1 et 2, avec les 2 premières variables)
+X = X[y != 0, :2]          # garde seulement les colonnes 0 et 1, exclut la classe 0
+y = y[y != 0]              # Garde seulement les classes 1 et 2
 
 ```
 
@@ -87,9 +99,11 @@ Ensuite, nous devons laisser un quart des données de côté pour évaluer la pe
 
 ```{python}
 
+# Séparation train/test (75% train, 25% test)
 X_train, X_test, y_train, y_test = train_test_split(X, 
                                                     y, 
-                                                    test_size = 0.25, random_state = 42) # graine
+                                                    test_size = 0.25, 
+                                                    random_state = 42) # graine
 
 ```
 
@@ -101,19 +115,19 @@ Le l'hyperparamètre $C$ que nous devons choisir (le meilleur possible) est la m
 
 ```{python}
 
-# fit the model and select the best hyperparameter C
-parameters = {'kernel': ['linear'], 
-              'C': list(np.logspace(-3, 3, 200))} # teste 200 valeurs de C (de 0.001 à 1000)
+# Configuration de la recherche par grille pour trouver le meilleur C
+parameters = {'kernel': ['linear'],               # noyau linéaire
+              'C': list(np.logspace(-3, 3, 200))} # 200 valeurs (de 0,001 à 1000)
 
+# Création du modèle SVM et recherche du meilleur hyperparamètre
 svr = svm.SVC()
 clf_linear = GridSearchCV(svr, parameters)  # teste toutes les combinaisons de paramètres
 clf_linear.fit(X_train, y_train)       # validation croisée
 
-# compute the score
-
+# Affichage des scores
 print('Generalization score for linear kernel: %s, %s' %
-      (clf_linear.score(X_train, y_train),   # données de train
-       clf_linear.score(X_test, y_test)))    # données de test
+      (clf_linear.score(X_train, y_train),   # score sur train
+       clf_linear.score(X_test, y_test)))    # score sur test
 
 ```
 
@@ -123,9 +137,9 @@ Nous pouvons voir que le score pour le noyau linéaire des données d'entraînem
 
 La performance sur le train n'est pas excellente, en effet elle n'est que de $75\%$ ce qui indique que le modèle a un peu de mal à séparer les deux classes.
 
-Cependant, le fait qu'il n'y ait qu'une diminution de $7\%$ entre les données d'entraînement et celles de test est plutôt encouragement. En effet, il est normal qu'il y ait une petite baisse sur des données qui n'ont jamais été vues.
+Cependant, le fait qu'il n'y ait qu'une diminution de $7\%$ entre les données d'entraînement et celles de test est plutôt encourageant. En effet, il est normal qu'il y ait une petite baisse sur des données qui n'ont jamais été vues.
 
-Donc, comme les scores ne sont pas très élevés mais restent assez proches les uns des autres, nous pouvons en déduire que le modèle à noyau linéaire généralise moyennement. Le problème pourrait venir du fait que les classes ne se chevauchent probablement pas de manière linéaire et, comme nous utilisons un noyau linéaire, nous traçons une droite pour faire la séparation. De plus, peut être que les deux premières classes ne suffisent pas à bien discriminer les deux espèces.
+Donc, comme les scores ne sont pas très élevés mais restent assez proches les uns des autres, nous pouvons en déduire que le modèle à noyau linéaire généralise moyennement. Le problème pourrait venir du fait que les classes ne se chevauchent probablement pas de manière linéaire et, comme nous utilisons un noyau linéaire, nous traçons une droite pour faire la séparation. De plus, peut être que les deux premières variables ne suffisent pas à bien discriminer les deux espèces.
 
 ### Question 2. Noyau polynomial
 
@@ -133,21 +147,23 @@ Afin de comparer nos performances de généralisation du modèle entre plusieurs
 
 ```{python}
 
-# Q2 polynomial kernel
+# Configuration des hyperparamètres pour le noyau polynomial
 Cs = list(np.logspace(-3, 3, 5)) # teste 5 valeurs de C (de 0.001 à 1000)
 gammas = 10. ** np.arange(1, 2)
 degrees = np.r_[1, 2, 3]         # polynômes de degrés 1, 2, 3
 
-# fit the model and select the best set of hyperparameters
+# Configuration de la grille de recherche
 parameters = {'kernel': ['poly'],   # noyau polynomial
               'C': Cs,              # 5 valeurs de C
               'gamma': gammas,      # 1 valeur (10.0)
               'degree': degrees}    # 3 valeurs
 
+# Entraînement et sélection des meilleurs hyperparamètres
 svr_poly = svm.SVC()    # vecteur vide
 clf_poly = GridSearchCV(svr_poly, parameters)   # teste les combinaisons avec validation croisée
 clf_poly.fit(X_train, y_train) # entraine les modèles et sélectionne le meilleur
 
+# Affichage des meilleurs paramètres trouvés
 print(clf_poly.best_params_)
 print('Generalization score for polynomial kernel: %s, %s' %
       (clf_poly.score(X_train, y_train),
@@ -157,40 +173,44 @@ print('Generalization score for polynomial kernel: %s, %s' %
 
 Nous pouvons voir que nous obtenons exactement les mêmes scores pour le noyau polynomial que ceux que nous avions obtenu pour le noyau linéaire. En effet, nous pouvons voir des scores de $0,75$ pour le train et de $0,68$ pour les données de test.
 
-Si nous regardons les hyperparamètres choisit par le modèle, nous pouvons voir que cette similarité n'est pas une coïncidence. En effet, elle s'explique par le choix des hyperparamètres optimaux sélectionnées par `GridSearchCV` pour le noyau polynomial.
+Si nous regardons les hyperparamètres choisis par le modèle, nous pouvons voir que cette similarité n'est pas une coïncidence. En effet, elle s'explique par le choix des hyperparamètres optimaux sélectionnées par `GridSearchCV` pour le noyau polynomial.
 
 Le paramètre important à regarder ici est le degré. Nous pouvons voir que c'est un noyau polynomial de degré $1$ qui a été choisi, ce qui équivalent à un noyau linéaire et c'est donc pour cela que nous obtenons les mêmes résultats au niveau des scores.
 
-Ainsi, cette sélection automatique du degré $1$ par la validation croisée indique que la forntière de décision optimale pour séparer les classes $1$ et $2$ d'Iris (avec les deux premières variables) est effectivement bien linéaire. Les degrés supérieurs testés ont sûrement donné de moins bonnes performances, probablement en raison d'un surapprentissage.
+Ainsi, cette sélection automatique du degré $1$ par la validation croisée indique que la frontière de décision optimale pour séparer les classes $1$ et $2$ d'Iris (avec les deux premières variables) est effectivement bien linéaire. Les polynômes de degrés supérieurs testés n'ont pas apporté d'amélioration, probablement car ils introduisent plus de complexité qui mène au surapprentissage sur cet ensemble de données.
 
-Cela suggère que les données de ces deux classes d'Iris sont linéairement séparables dans l'espace défini par les deux premières variables, ce qui justifie l'efficiaté du noyau linéaire pour ce problème de classification.
+Cela suggère que, dans l'espace défini par les deux premières variables, les données de ces deux classes d'Iris présentnet une structure essentiellement linéaire, ce qui justifie l'efficacité du noyau linéaire pour ce problème de classification.
 
 Afin de vérifier ces résultats, nous allons les tracer en utilisant `frontiere`.
 
 ```{python}
 
-# display your results using frontiere (svm_source.py)
-
+# Visualisation des frontières de décision (svm_source.py)
 def f_linear(xx):
     return clf_linear.predict(xx.reshape(1, -1))
 
 def f_poly(xx):
     return clf_poly.predict(xx.reshape(1, -1))
 
+# Création des graphiques comparatifs
 plt.ion()
 plt.figure(figsize=(15, 5))
+
+# Graphique 1 : données originales
 plt.subplot(131)
 plot_2d(X, y)
 plt.title("iris dataset")
 
+# Graphique 2 : frontière avec noyau linéaire
 plt.subplot(132)
 frontiere(f_linear, X, y)
 plt.title("linear kernel")
 
+# Graphique 3 : frontière avec noyau polynomial
 plt.subplot(133)
 frontiere(f_poly, X, y)
-
 plt.title("polynomial kernel")
+
 plt.tight_layout()
 plt.draw()
 
@@ -213,8 +233,11 @@ Pour commencer, nous lançons le script svm_script.py. Ensuite, nous créons un 
 ::: {#fig-svm layout-ncol=2}
 
 ![C = 10](graphiques/C10.png){#fig-c10}
+
 ![C = 1](graphiques/C1.png){#fig-c1}
+
 ![C = 0,1](graphiques/C01.png){#fig-c01}
+
 ![C = 0,01](graphiques/C001.png){#fig-c001}
 
 Influence du paramètre C sur un dataset déséquilibré avec noyau linéaire
@@ -227,11 +250,13 @@ Nous voyons dans la @fig-svm que :
 - Pour $C = 0,1$ : l'hyperplan est quasiment à la verticale, il n'y a que deux points noirs qui sont ensemble et le troisième est mal classé.
 - Pour $C = 0,01$ : l'hyperplan est également à la verticale, il a l'air d'ignorer les points noirs et se contente de séparer les points bleus.
 
-Nous pouvons voir que les $C$ élevés ($10$ et $1$) semblent proches, de mêmes que les $C$ faibles ($0,1$ et $0,01$). Nous voyons que les premiers prennent bien en compte les points minoritaires et les classes de la bonne manière. A contrario, les deux derniers semblent très tolérant aux erreurs : comme les bleus sont majoritaires, ils optimisent uniquement pour eux et abandonnent les noirs.
+Nous pouvons voir que les $C$ élevés ($10$ et $1$) semblent proches, de mêmes que les $C$ faibles ($0,1$ et $0,01$). Nous voyons que les premiers prennent bien en compte les points minoritaires et les classent de la bonne manière. A contrario, les deux derniers semblent très tolérant aux erreurs : comme les bleus sont majoritaires, ils optimisent uniquement pour eux et négligent les noirs.
 
 Ainsi, nous pouvons en conclure que, lorsque nous diminuons $C$ sur un dataset déséquilibré avec un noyau linéaire, l'hyperplan se déplace pour favoriser la bonne classification de la classe majoritaire et pour maximiser la marge, au détriment de la classe minoritaire. Avec $C$ très faible, le modèle ignore presque complétement les points noirs.
 
-Cela s'expliquer car le paramètre $C$ contrôle le coût des erreurs de classification. Avec $C$ faible, le modèle préfère un hyperplan simple (avec une grande marge) quitte à faire des erreurs. Sur des données déséquilibrés, ces erreurs affectent principalement la classe minoritaire car elle a moins d'influence sur l'optimisation.
+Cela s'explique car le paramètre $C$ contrôle le coût des erreurs de classification. Avec $C$ faible, le modèle préfère un hyperplan simple (avec une grande marge) quitte à faire des erreurs. Sur des données déséquilibrés, ces erreurs affectent principalement la classe minoritaire car elle a moins d'influence sur l'optimisation.
+
+Ce phénomène illustre donc un problème critique en apprentissage automatique sur données déséquilibrées. Lorsque $C$ diminue, le modèle privilégie une marge large (simplicité) au détriment de la précision sur la classe minoritaire.
 
 ## 4. Mise en oeuvre - Classification de visages
 
@@ -241,17 +266,14 @@ Nous commençons donc par télécharger la base de données qui nous intéresse.
 
 ```{python}
 
-# Download the data and unzip; then load it as numpy arrays
+# Téléchargement de la base de données "Labeled Faces in the Wild"
 lfw_people = fetch_lfw_people(min_faces_per_person=70, resize=0.4,
                               color=True, funneled=False, slice_=None,
                               download_if_missing=True)
-# data_home='.'
 
-# introspect the images arrays to find the shapes (for plotting)
+# Extraction des données
 images = lfw_people.images
 n_samples, h, w, n_colors = images.shape
-
-# the label to predict is the id of the person
 target_names = lfw_people.target_names.tolist()
 
 ```
@@ -259,37 +281,303 @@ target_names = lfw_people.target_names.tolist()
 Puis, nous choisissons une paire de personnes à classer : Donald Rumsfeld et Colin Powell.
 
 ```{python}
+#| label: fig-galerie
+#| fig-cap: "Exemple de 12 visages de notre base de données"
+#| layout-ncol: 1
 
-# Pick a pair to classify such as
+# Sélection de deux personnes à classifier
 names = ['Donald Rumsfeld', 'Colin Powell']
 
+# Filtrage des images pour ne garder que ces deux personnes
 idx0 = (lfw_people.target == target_names.index(names[0]))
 idx1 = (lfw_people.target == target_names.index(names[1]))
 images = np.r_[images[idx0], images[idx1]]
 n_samples = images.shape[0]
+
+# Création des étiquettes (0 pour Rumsfeld, 1 pour Powell)
 y = np.r_[np.zeros(np.sum(idx0)), np.ones(np.sum(idx1))].astype(int)
 
-# plot a sample set of the data
+# Affichage d'un échantillon de 12 visages
 plot_gallery(images, np.arange(12))
 plt.show()
 
 ```
 
-Et nous continous en divisant les données en deux sous-ensembles : un ensemble d'entraînement (train) et un ensemble de test (test).
+Nous observons quelle personne entre les deux étudiées est la plus représentée dans notre jeu de données et à quelle proportion.
+
+```{python}
+# Code supplémentaire de vérirication/interprétation
+
+# Vérifier la distribution des classes
+unique, counts = np.unique(y, return_counts=True)
+class_distribution = dict(zip(unique, counts))
+
+# Affichage des résultats
+print("Distribution des classes :")
+print(f"Classe 0 ({names[0]}) : {class_distribution[0]} images ({class_distribution[0]/len(y)*100:.1f}%)")
+print(f"Classe 1 ({names[1]}) : {class_distribution[1]} images ({class_distribution[1]/len(y)*100:.1f}%)")
+
+```
+
+Nous voyons qu'il y a $357$ images au total et que c'est Colin Powell qui est le plus représenté avec $66,1\%$ des images totales. 
+
+Nous continous en divisant les données en deux sous-ensembles : un ensemble d'entraînement (train) et un ensemble de test (test).
+
+```{python}
+
+# Extraction des caractéristiques (intensité lumineuse moyenne en niveaux de gris)
+X = (np.mean(images, axis=3)).reshape(n_samples, -1)
+
+# Normalisation des caractéristiques (centrage et réduction)
+X -= np.mean(X, axis=0)
+X /= np.std(X, axis=0)
+
+# Séparation train/test (50/50)
+np.random.seed(42)     # ajout d'une graine pour reproductibilité
+indices = np.random.permutation(X.shape[0])
+train_idx, test_idx = indices[:X.shape[0] // 2], indices[X.shape[0] // 2:]
+
+X_train, X_test = X[train_idx, :], X[test_idx, :]
+y_train, y_test = y[train_idx], y[test_idx]
+images_train, images_test = images[
+    train_idx, :, :, :], images[test_idx, :, :, :]
+
+```
+
 
 ### 4.1. Question 4.
 
-...
+Nous cherchons maintenant à montrer l'influence du paramètre de régularisation $C$ en affichant l'erreur de prédiction.
 
+<a id="fig-cOpti"></a>
 
-On peut voir qu'il y a $91,6\%$ de précision sur l'ensemble de test ce qui est une très bonne performance pour la classification de nos visages. Cela signifie que le modèle préidt correctement l'identité de la personne dans $92\%$ des cas.
+```{python}
+#| label: fig-cOpti
+#| fig-cap: "Evolution du score d'apprentissage en fontion du paramètre de régularisation"
+
+print("--- Linear kernel ---")
+print("Fitting the classifier to the training set")
+t0 = time()
+
+# Définition de la grille de valeurs de C à tester (de 10^-5 à 10^6)
+Cs = 10. ** np.arange(-5, 6)
+scores = []
+
+# Boucle pour tester chaque valeur de C
+for C in Cs:
+    # Création d'un SVM avec noyau linéaire et paramètre C donné
+    clf_temp = svm.SVC(kernel='linear', C=C)
+    # Entraînement du modèle sur les données d'entraînement
+    clf_temp.fit(X_train, y_train)
+    # Évaluation sur les données de test et stockage du score
+    scores.append(clf_temp.score(X_test, y_test))
+
+# Identification du meilleur C (celui qui maximise le score)
+ind = np.argmax(scores)
+print("Best C: {}".format(Cs[ind]))
+
+# Visualisation de l'évolution du score en fonction de C
+plt.figure()
+plt.plot(Cs, scores)
+plt.xlabel("Parametres de regularisation C")
+plt.ylabel("Scores d'apprentissage")
+plt.xscale("log")
+plt.tight_layout()
+plt.show()
+
+print("Best score: {}".format(np.max(scores)))
+print("Predicting the people names on the testing set")
+t0 = time()
+
+```
+
+On peut voir dans la [Figure 3](#fig-cOpti) qu'il y a $92,7\%$ de précision sur l'ensemble de test ce qui est une très bonne performance pour la classification de nos visages. Cela signifie que le modèle prédit correctement l'identité de la personne dans $92\%$ des cas.
 
 De plus, nous voyons que la courbe montre trois zones distinctes : 
 - Pour $C < 10^{-4}$ : les scores sont faibles. La régularisation est excessive,le modèle est trop simple et sous-apprend. De plus, la marge doit être trop large ce qui permet trop d'erreurs.
 - Pour $10^{-4} ≤ C ≤ 10^{-3}$ : les scores augmentent jusqu'à un pic optimal (pour $C = 0,001$). Nous avons le meilleur compromis biais-variance car le modèle capture la structure des données sans sous ou sur apprendre.
-- Pour $C > 10^{-3}$ : les scores diminuent légèrement et se stabilisent en un plateau. La performance n'augente plus car le modèle est déhç suffisamment complexe. Donc, augmenter $C$ ne sert plus à rien et nous risquons de faire apparaître du sur-apprentissage.
+- Pour $C > 10^{-3}$ : les scores se stabilisent en un plateau. La performance n'augmente plus car le modèle est déjà suffisamment complexe. Donc, augmenter $C$ ne sert plus à rien et nous risquons de faire apparaître du sur-apprentissage.
 
-Ainsi, le SVM avec $C = 0.001$ et le noyau linéaire offre une très bonne performance ($91.6%$) pour cette tâche de reconnaissance faciale. Il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu'un $C$ pas trop grand aide à ignorer ce bruit. En effet, le fait que la performance n'augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l'espace des caractéristiques.
+Ainsi, le SVM avec $C = 0.001$ et le noyau linéaire offre une très bonne performance ($92.7%$) pour cette tâche de reconnaissance faciale : il est suffisamment élevé pour permettre au modèle de capturer les différences entre les visages mais reste assez bas pour éviter de sur-ajuster les particularités de l'ensemble d'entraînement (expressions faciales, accessoires, éclairage, etc.).
+
+De plus, nous pouvons en déduire qu'il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu'un $C$ pas trop grand aide à ignorer ce bruit. En effet, le fait que la performance n'augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l'espace des caractéristiques.
+
+Ainsi, à partir de ce classificateur optimal, nous cherchons maintenant à prédire les étiquettes pour les images $X_test$.
 
 
+```{python}
 
+# Entraînement du modèle avec le meilleur C trouvé
+clf =  svm.SVC(kernel='linear', C=Cs[ind])
+clf.fit(X_train, y_train)
+
+# Prédiction sur l'ensemble de test
+y_pred = clf.predict(X_test)
+
+print("done in %0.3fs" % (time() - t0))
+
+# Calcul du niveau de chance (si on prédit toujours la classe majoritaire)
+print("Chance level : %s" % max(np.mean(y), 1. - np.mean(y)))
+print("Accuracy : %s" % clf.score(X_test, y_test))
+
+```
+
+Nous pouvons voir que nous avons un niveau de chance de $66\%$, ce qui correspond à la précision qu'on obtiendrait en prédisant toujours la classe majoritaire (dans notre cas Colin Powell). C'est-à-dire qu'un classificateur naïf qui prédirait toujours Colin Powell aurait $66\%$ de précision. Cela correspond donc à notre borne inférieur : tout modèle doit faire mieux que ça.
+
+Ensuite, nous voyons que nous obtenons une précision de $92,7\%$, comme nous l'avions vu précédemment pour un $C = 0,001$. En le comparant à notre niveau de base à absolument dépasser pour faire mieux qu'une prédiction naïve, nous voyons que la différence est très importante entre le deux. En effet, le modèle a réellement appris à distinguer les deux personnes et ne se contente pas de prédire la classe majoritaire. 
+
+Maintenant après avoir évalués quantitativement nos prédictions, nous avons les évaluer qualitativement à l'aide la librairie `matplotlib`.
+
+<a id="fig-heatmap"></a>
+
+```{python}
+#| label: fig-heatmap
+#| fig-cap: "Évaluation qualitative des prédictions"
+#| fig-subcap: 
+#|   - "Prédiction des étiquettes des 12 premiers visages"
+#|   - "Heatmap des poids du classificateur SVM linéaire"
+#| layout-ncol: 1
+
+# Création des titres pour chaque prédiction (correct/incorrect)
+prediction_titles = [title(y_pred[i], y_test[i], names)
+                     for i in range(y_pred.shape[0])]
+
+# Affichage d'une galerie de prédictions
+plot_gallery(images_test, prediction_titles)
+plt.show()
+
+# Visualisation des poids du classificateur sous forme d'image
+plt.figure()
+plt.imshow(np.reshape(clf.coef_, (h, w)))
+plt.show()
+
+```
+
+La [galerie d'images](#fig-heatmap) permet d'évaluer visuellemtn les performances du modèles. On peut voir que la majorité des visages sont correctement classés (seulement $2$ erreurs sur les prédictions de Powell, ce qui correspond ici à environ $83\%$ de prédiction correcte). On voit également que le modèle a réussit à identifier les personnes mêmes avec des variations comme les expressions faciales, les angles de vue, les conditions d'éclairage ou encore la présence/absence de lunettes.
+
+La [deuxième image](#fig-heatmap) montre une heatmap, qui indique les poids du modèle SVM linéaire sous forme d'image :
+
+- Les zones jaunes : indiquent les caractéristiques de la première classe (Colin Powell).
+- Les zones bleus foncées : indiquent les caractéristiques de la deuxième classe (Donald Rumself).
+- Les zones turquoise : indiquent que les pixels sont peu disciminant et n'aide pas à identifier la personne (poids proches de $0$).
+
+Plus spécifiquement, nous voyons sur notre image qu'il y a des tâches jaunes principalement au centre de la photo ce qui pourrait correspondre aux zones du nez et des yeux. De plus, nous voyons un tâche bleu foncée en dessous de celles jaunes qui semble être la zone de la bouche ou du menton, et qui permet d'identifier la seconde personne. Toutes ces zones décrites sont celles qui permettent le mieux d'identifier si nous sommes en présence de Colin Powell ou de Donald Rumself. Ainsi, en se basant sur le turquoise, nous pouvons voir que l'arrière plan n'aide pas à discriminer la personne dans notre modèle, ce qui est cohérent car nous avons vu qu'il changeait sur chaque photographie.
+
+Ainsi, nous pouvons dire que le SVM linéaire a appris à se concentrer sur les régions centrales du visage qui contiennent effectivement le plus d'informations discriminantes. Le fait que les poids les plus élevés soient localisés et non diffus suggère que le modèle semble avoir identifié des patterns cohérents plutôt que du bruit aléatoire. De plus, il nous semble distinguer un visage dans la heatmap ce qui appuie cette dernière conclusion.
+
+### 4.2. Question 5.
+
+Nous allons maintenant ajouter $300$ variables de nuisance afin de vérifier si la performance chute bien. Cela est dû car le nombre de variables à nombre de points d'apprentissage fixé augmente.
+
+```{python}
+
+# Fonction pour entraîner et évaluer un SVM avec validation croisée.
+def run_svm_cv(_X, _y):
+    # Ajout de la graine
+    np.random.seed(42)
+    # Permutation aléatoire des indices pour mélanger les données
+    _indices = np.random.permutation(_X.shape[0])
+    # Séparation en 50% train / 50% test
+    _train_idx, _test_idx = _indices[:_X.shape[0] // 2], _indices[_X.shape[0] // 2:]
+    # Extraction des sous-ensembles
+    _X_train, _X_test = _X[_train_idx, :], _X[_test_idx, :]
+    _y_train, _y_test = _y[_train_idx], _y[_test_idx]
+
+    # Configuration de la recherche par grille (5 valeurs de C entre 0.001 et 1000)
+    _parameters = {'kernel': ['linear'], 'C': list(np.logspace(-3, 3, 5))}
+    _svr = svm.SVC()
+    _clf_linear = GridSearchCV(_svr, _parameters)
+    # Entraînement avec sélection automatique du meilleur C
+    _clf_linear.fit(_X_train, _y_train)
+
+    # Affichage des performances
+    print('Generalization score for linear kernel: %s, %s \n' %
+          (_clf_linear.score(_X_train, _y_train), _clf_linear.score(_X_test, _y_test)))
+
+print("Score sans variable de nuisance")
+run_svm_cv(X, y)
+
+print("Score avec variable de nuisance")
+
+# Nombre de caractéristiques originales
+n_features = X.shape[1]
+
+# Génération de 300 variables dde nuisance (loi gaussienne)
+sigma = 1
+noise = sigma * np.random.randn(n_samples, 300, ) 
+
+# Concaténation des données originales avec le bruit
+X_noisy = np.concatenate((X, noise), axis=1)
+
+# Permutation pour mélanger les lignes
+np.random.seed(42) # graine
+X_noisy = X_noisy[np.random.permutation(X.shape[0])]
+
+run_svm_cv(X_noisy, y)
+
+```
+
+Nous avons donc ajouté $300$ variables de nuisances générées à partir d'un bruit gaussien de variance $\sigma = 1$. Les résultats montrent que le modèle mémorise toujours bien les données d'entraînement ($1.0$ donc $100\%$) mais est un signe de sur-apprentissage. De plus, la précision sur le test chute de $33,5\%$ pour passer à $59,2\%$ ce qui cause, en plus, une énorme différence entre le score de nos données de train et celle de test et montre que le modèle ne généralise plus. Enfin, nous voyons que ce modèle est moins performant que le niveau de chance, c'est-à-dire qu'il vaut mieux toujours prédire la classe majoritaire plutôt qu'utiliser ce modèle qui va se tromper plus de fois.
+
+Donc, le SVM linéaire tente d'utiliser toutes les variables (signal et bruit) car il ne peut pas distinguer automatiquement les variables utilies du bruit impliquant que les $300$ variables de bruits noient les centaines de variables utiles. Ainsi, le ratio signal/bruit devient défavorable et conduit notre modèle à avoir une performance inférieure au hasard.
+
+### 4.3. Question 6.
+
+Afin de remédier au problème de données bruitées que nous avons observés lors de la questions précédente, nous allons améliorer la prédiction à l'aide d'une méthode de réduction de dimension. Cette méthode est l'Analyse en Composantes Principales (ACP) qui projette les données dans un espace de dimension réduite.
+
+Cette méthode a plusieurs avantages dans notre cas : 
+
+- Filtrage du bruit : les variables de nuisance sont du bruit gaussin indépendant, donc elles ont une variable faible et aléatoire. Les composantes principales capturent d'abord la structure systématique (ici les visages) et donc le bruit se retrouve dans les composantes de faible variance et est éliminé.
+- Concentration de l'information : les $n$ premières composantes capturent un certain pourcentage de la variance totale (nous allons le voir par la suite dans le \hyperref{tableau récapitulatif}). Cette variance correspond principalement aux vrais caractéristiques faciales. Ainsi, on passe de plus de $400$ dimension à $20$, donc le ration entre le signal et le bruit est nettement amélioré.
+
+Nous testons différentes valeurs de $n$ composantes pour pouvoir les comparer entre elles et identifier le nombre optimal de composantes princpales. Le choix de $n$ est très important et nous allons essayer de voir son ordre de grandeur optimal car trop peu de composants et on perd du signal utile mais trop de composant et on conserve du bruit.
+
+Nous avons écrit le code suivant pour un $n = 20$ et l'avons ensuite modifié en changeant juste ce paramètre.
+
+```{python}
+
+# Décommenter le code pour le faire tourner (attention, environ 20 minutes de chargement)
+
+""" print("Score apres reduction de dimension")
+
+# Nombre de composantes principales à conserver
+n_components = 20  # jouer avec ce parametre
+
+# Création et ajustement du modèle ACP sur les données bruitées
+pca = PCA(n_components=n_components, random_state=42).fit(X_noisy)
+
+# Projection des données dans le nouvel espace réduit
+X_noisy_pca = pca.transform(X_noisy)
+
+# Évaluation du modèle sur les données transformées
+run_svm_cv(X_noisy_pca, y) """
+
+```
+
+Nous avons obtenu les scores suivants : 
+
+::: {#tbl-pca}
+
+| Nombre de composantes | Score Train | Score Test | Écart |
+|:---------------------:|:-----------:|:----------:|:-----:|
+| 2                     | 0,635       | 0,687      | 0,52%  |
+| 5                     | 0,       | 0,      | x.x%  |
+| 15                    | 0,       | 0,      | %  |
+| 20                    | 0,       | 0,      | %  |
+| 50                    | 0,       | 0,      | x.x%  |
+| 100                   | 0,843       | 0,570      | 2,73%  |
+| 200                   | 1,000       | 0,603      | 3,97%  |
+
+Impact du nombre de composantes de l'ACP sur les scores du modèle de classification
+
+:::
+
+Donc, nous pouvons voir que l'ACP démontre son efficacité comme technique de débruitage et de réduction de dimension. En projetant les données bruitées dans un sous-espace de dimension $??$, elle élimine les variables parasites tout en préservant les caractéristiques discriminantes des visages. Ce résultat illustre un principe important en machine learning : plus de variables n'est pas toujours mieux (overfitting).
+
+### 4.4. Question 7.
+
+Il existe un biais dans notre prétraitement des données. En effet, au niveau de la question 4, la standardisation est effectuée sur l'ensemble complet des données avant la séparation en un échantillon d'entraînement et un autre de test. Donc, cela pose problème car les statistiques (moyenne et écart-type) sont calculées en incluant les données de test. Ainsi, le modèle a indirectement accès à des informations de l'échantillon de test pendant l'entraîbement, ce qui crée une fuite d'information. Donc, les performances mesurées sont surestimées car le modèle bénéficie d'information qu'il ne devrait pas avoir en situation réelle.
+
+La bonne pratique serait de standardiser en utilisant uniquement les données, et statistiques associées, de l'échantillon d'entraînement.
+
+## 5. Conclusion
