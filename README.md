@@ -24,6 +24,7 @@ Pour lancer le projet :
 
 L'arborescence du dépôt git est la suivante :
 
+```AIGOIN_SVM/
 ├── graphiques/             # Figures générées et affichées dans le fichier script.html
 │   ├── C1.png
 │   ├── C01.png
@@ -39,7 +40,8 @@ L'arborescence du dépôt git est la suivante :
 ├── script.qmd              # Fichier à lancer pour re générer le rendu final script.html
 ├── svm_gui.py           # Fichier à lancer pour répondre à la question numéro 3 du TP (source https://scikit-learn.org/1.2/auto_examples/applications/svm_gui.html)
 ├── svm_script.py              # Fichier de code à lancer pour avoir les résultats des questions du TP sans explications (base de code de B.Bensaid, B. Charlier, J. Salmon)
-└── svm_source.py        # Fichier utilisé dans svm_script.py et script.qmd contenant des fonctions nécessaires pour réaliser des travaux SVM (auteurs J. Salmon, A. Gramfort, C. Vernade)           
+└── svm_source.py        # Fichier utilisé dans svm_script.py et script.qmd contenant des fonctions nécessaires pour réaliser des travaux SVM (auteurs J. Salmon, A. Gramfort, C. Vernade)
+```         
 
 Bonne lecture !
 
