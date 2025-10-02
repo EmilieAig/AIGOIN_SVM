@@ -23,6 +23,7 @@ Pour lancer le projet :
 ### Structure
 
 L'arborescence du dépôt git est la suivante :
+
 .
 ├── graphiques/             # Figures générées et affichées dans le fichier script.html
 │   ├── C1.png
