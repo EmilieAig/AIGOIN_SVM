@@ -18,7 +18,7 @@ Les prérequis sont :
 Pour lancer le projet :
 - Cloner le dépôt.
 - Lancer le fichier "requirements.txt" pour installer les dépendances (il faut penser à décommenter les premières lignes)
-- Lancer le script "svm_script.py" pour le fichier Python / le script "script.qmd" pour un rendu en quarto ou en .html / ouvrir directement le fichier "script.html"
+- Lancer le script "svm_script.py" pour le fichier Python / le script "script.qmd" pour le compte-rendu en quarto ou en .html / ouvrir directement le fichier "script.html"
 
 ### Structure
 
