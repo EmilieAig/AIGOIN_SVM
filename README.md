@@ -41,8 +41,8 @@ L'arborescence du dépôt git est la suivante :
 ├── .gitignore              # Fichier permettant d'ignorer les fichiers non utiles 
 ├── README.md
 ├── requirements.txt        # Fichier à lancer pour installer les packages nécessaire pour faire tourner le code
-├── script.html             # Rendu final du TP avec le code et les explications
-└── script.qmd              # Fichier à lancer pour re générer le rendu final script.html
+├── Compte-rendu.html             # Rendu final du TP avec le code et les explications
+└── Compte-rendu.qmd              # Fichier à lancer pour re générer le rendu final script.html
 
 ```         
 
