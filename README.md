@@ -22,10 +22,10 @@ Pour lancer le projet :
 
 ### Structure
 
-L'arborescence du dépôt git est la suivante :
+L'arborescence du dépôt github est la suivante :
 
 ```AIGOIN_SVM/
-├── graphiques/             # Figures générées et affichés dans le fichier script.html
+├── graphiques/             # Figures générées et affichées dans le fichier script.html
 │   ├── C1.png
 │   ├── C01.png
 │   ├── C001.png
@@ -39,13 +39,13 @@ L'arborescence du dépôt git est la suivante :
 │   ├── svm_script.py       # Fichier de code à lancer pour avoir les résultats des questions du TP sans explications (base de code de B.Bensaid, B. Charlier, J. Salmon)
 │   └── svm_source.py       # Fichier utilisé dans svm_script.py et script.qmd contenant des fonctions nécessaires pour réaliser des travaux SVM (auteurs J. Salmon, A. Gramfort, C. Vernade)
 ├── .gitignore              # Fichier permettant d'ignorer les fichiers non utiles 
-├── Compte-rendu.qmd              # Fichier à lancer pour re générer le rendu final script.html
-├── Compte-rendu.html             # Rendu final du TP avec le code et les explications
+├── Compte-rendu.qmd        # Fichier à lancer pour re-générer le compte-rendu final script.html
+├── Compte-rendu.html       # Compte-rendu final du TP avec le code et les explications
 ├── README.md
-└── requirements.txt        # Fichier à lancer pour installer les packages nécessaire pour faire tourner le code
+└── requirements.txt        # Fichier à lancer pour installer les packages nécessaires pour faire tourner le code
 
 ```         
 
-Bonne lecture !
+Bonne lecture à tous !
 
 AIGOIN Emilie
