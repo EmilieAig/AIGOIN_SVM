@@ -18,9 +18,6 @@ ENV/
 # VS Code
 .vscode/
 
-# Dossier de scripts
-Compte-rendu_files/
-
 # R
 .Rhistory
 
