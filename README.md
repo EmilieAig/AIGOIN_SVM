@@ -25,6 +25,8 @@ Pour lancer le projet :
 L'arborescence du dépôt github est la suivante :
 
 ```AIGOIN_SVM/
+├── Compte-rendu_files      # Dossier avec les mises en page une fois que le script .qmd crée a été lancé
+│   ├── ...
 ├── graphiques/             # Figures générées et affichées dans le fichier script.html
 │   ├── C1.png
 │   ├── C01.png
