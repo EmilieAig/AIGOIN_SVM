@@ -19,7 +19,7 @@ ENV/
 .vscode/
 
 # Dossier de scripts
-script_files/
+Compte-rendu_files/
 
 # R
 .Rhistory
