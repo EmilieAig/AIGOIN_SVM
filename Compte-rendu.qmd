@@ -14,7 +14,6 @@ format:
 jupyter: aigoin_svm
 ---
 
-
 ## 1. Introduction
 
 ### 1.1. Objectif
@@ -25,26 +24,26 @@ L'objectif de ce TP est de mettre en pratique la technique de classification Sup
 
 Nous rappelons les définitions, notations et formules suivantes : 
 
-- $\mathcal{Y}$ : ensemble des étiquettes (labels), usuellement $\mathcal{Y} = \{-1, 1\}$ pour la classification binaire
-- $x = (x_1, \ldots, x_p) \in \mathcal{X} \subset \mathbb{R}^p$ : une observation (ou exemple) décrite par $p$ variables
-- $\mathcal{D}_n = \{(x_i, y_i), i = 1, \ldots, n\}$ : ensemble d'apprentissage contenant $n$ exemples étiquetés
-- $\hat{f} : \mathcal{X} \to \{-1, 1\}$ : fonction de classification apprise à partir de $\mathcal{D}_n$
+- $\mathcal{Y}$ : ensemble des étiquettes (labels), usuellement $\mathcal{Y} = \{-1, 1\}$ pour la classification binaire.
+- $x = (x_1, \ldots, x_p) \in \mathcal{X} \subset \mathbb{R}^p$ : une observation (ou exemple) décrite par $p$ variables.
+- $\mathcal{D}_n = \{(x_i, y_i), i = 1, \ldots, n\}$ : ensemble d'apprentissage contenant $n$ exemples étiquetés.
+- $\hat{f} : \mathcal{X} \to \{-1, 1\}$ : fonction de classification apprise à partir de $\mathcal{D}_n$.
 
-**Overfitting (surapprentissage)** : phénomène où le modèle mémorise les données d'entraînement au lieu d'apprendre des patterns généralisables, problème de généralisation et ne peut pas reconnaître d'autres données. Cela se traduit par une excellente performance sur les données d'entraînement mais une performance dégradée sur les données de test.
+**Overfitting (surapprentissage)** : phénomène où le modèle mémorise les données d'entraînement au lieu d'apprendre des patterns généralisables (problème de généralisation) et ne peut pas reconnaître d'autres données. Cela se traduit par une excellente performance sur les données d'entraînement mais une performance dégradée sur les données de test.
 
 ### 1.3. Méthode Support Vector Machine
 
-Les Vector Support Machine (SVM) sont un ensemble de méthodes d'apprentissage supervisé utilisées pour la classification, la régression et la detection de valeurs abberantes.
+Les Vector Support Machine (SVM) sont un ensemble de méthodes d'apprentissage supervisé, utilisées pour la classification, la régression et la détection de valeurs abberantes.
 
 Les SVM reposent sur deux idées clés : la notion de marge maximale (distance entre la frontière de séparation et les échantillons les plus proches) et celle de fonction de noyau (opérateur linéaire défini à l'aide d'une intégrale paramétrique sur certains espaces fonctionnels).
 
-Leurs avantages sont qu'elles sont efficaces dans les espaces en grande dimension (lorsqu'il y a plus de variables que d'individus), plusieurs fonctions de noyaux peuvent être utilisées.
+Leurs avantages sont leur efficacité dans les espaces en grande dimension (lorsqu'il y a plus de variables que d'individus). Plusieurs fonctions de noyaux peuvent être utilisées.
 
-Cependant, les SVM ne fournissent pas directement d'estimations de probabilité, il faut les calculer à l'aide de validation croisée.
+Cependant, les SVM ne fournissent pas directement d'estimation de probabilité, il faut les calculer à l'aide de la validation croisée.
 
 ## 2. Mise en oeuvre - Iris
 
-Nous commençons tout d'abbord par importer les packages qui nous serons nécessaires pour la suite de ce TP.
+Nous commençons tout d'abord par importer les packages qui nous seront nécessaires pour la suite de ce TP.
 
 ```{python}
 
@@ -53,7 +52,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.svm import SVC
-from svm_source import *
+from scripts_Python.svm_source import *
 from sklearn import svm
 from sklearn import datasets
 from sklearn.utils import shuffle
@@ -93,11 +92,11 @@ y = iris.target
 
 # Sélection des données (que classes 1 et 2, avec les 2 premières variables)
 X = X[y != 0, :2]          # garde seulement les colonnes 0 et 1, exclut la classe 0
-y = y[y != 0]              # Garde seulement les classes 1 et 2
+y = y[y != 0]              # garde seulement les classes 1 et 2
 
 ```
 
-Ensuite, nous devons laisser un quart des données de côté pour évaluer la performance en généralisation du modèle. Dans ces données, nous allons les séparer en un groupe d'entraînement ($75\%$) et un groupe de test ($25\%$). Pour ce faire, nous avons décidé d'utiliser la fonction `test_train_split` qui permet de mélanger automatiquement les données, ce qui est important pour éviter les biais (si les données iris sont ordonnées par classe par exemple). Puis nous avons fixé la graine comme $42$ afin d'assurer la reproductibilité.
+Ensuite, nous devons laisser un quart des données de côté pour évaluer la performance en généralisation du modèle. Dans ces données, nous allons les séparer en un groupe d'entraînement ($75\%$) et un groupe de test ($25\%$). Pour ce faire, nous avons décidé d'utiliser la fonction `test_train_split` qui permet de mélanger automatiquement les données, ce qui est important pour éviter les biais (si les données `iris` sont ordonnées par classe par exemple). Puis nous avons fixé la graine à $42$ afin d'assurer la reproductibilité.
 
 ```{python}
 
@@ -109,9 +108,10 @@ X_train, X_test, y_train, y_test = train_test_split(X,
 
 ```
 
-Maintenant que nos données sont correctement mélangées et séparées aléatoirement, nous allons pouvoir évaluer la performance en généralisation du modèle à partir d'une *noyau linéaire*. Ce noyau permet de chercher une frontière de décision linéaire (droite en $2$D).
+Maintenant que nos données sont correctement mélangées et séparées aléatoirement, nous allons pouvoir évaluer la performance en généralisation du modèle à partir d'un \textbf{noyau linéaire}. Ce noyau permet de chercher une frontière de décision linéaire (droite en $2$D).
 
 Le l'hyperparamètre $C$ que nous devons choisir (le meilleur possible) est la marge, elle doit faire un compromis entre : 
+
 - $C$ petit : marge large mais tolère plus d'erreurs.
 - $C$ grand : marge étroitre mais moins d'erreurs d'entraînement (risque d'overfitting).
 
@@ -124,7 +124,7 @@ parameters = {'kernel': ['linear'],               # noyau linéaire
 # Création du modèle SVM et recherche du meilleur hyperparamètre
 svr = svm.SVC()
 clf_linear = GridSearchCV(svr, parameters) # teste toutes les combinaisons de paramètres
-clf_linear.fit(X_train, y_train)       # validation croisée
+clf_linear.fit(X_train, y_train)           # validation croisée
 
 # Affichage des scores
 print('Generalization score for linear kernel: %s, %s' %
@@ -149,7 +149,7 @@ Afin de comparer nos performances de généralisation du modèle entre plusieurs
 
 ```{python}
 
-""" # Configuration des hyperparamètres pour le noyau polynomial
+# Configuration des hyperparamètres pour le noyau polynomial
 Cs = list(np.logspace(-3, 3, 5)) # teste 5 valeurs de C (de 0.001 à 1000)
 gammas = 10. ** np.arange(1, 2)
 degrees = np.r_[1, 2, 3]         # polynômes de degrés 1, 2, 3
@@ -161,34 +161,34 @@ parameters = {'kernel': ['poly'],   # noyau polynomial
               'degree': degrees}    # 3 valeurs
 
 # Entraînement et sélection des meilleurs hyperparamètres
-svr_poly = svm.SVC()    # vecteur vide
+svr_poly = svm.SVC()                # vecteur vide
 clf_poly = GridSearchCV(svr_poly, 
                         parameters) # teste les combinaisons (validation croisée)
-clf_poly.fit(X_train, y_train) # entraine les modèles et sélectionne le meilleur
+clf_poly.fit(X_train, y_train)      # entraine les modèles et sélectionne le meilleur
 
 # Affichage des meilleurs paramètres trouvés
 print(clf_poly.best_params_)
 print('Generalization score for polynomial kernel: %s, %s' %
       (clf_poly.score(X_train, y_train),
-       clf_poly.score(X_test, y_test))) """
+       clf_poly.score(X_test, y_test)))
 
 ```
 
 Nous pouvons voir que nous obtenons exactement les mêmes scores pour le noyau polynomial que ceux que nous avions obtenu pour le noyau linéaire. En effet, nous pouvons voir des scores de $0,75$ pour le train et de $0,68$ pour les données de test.
 
-Si nous regardons les hyperparamètres choisis par le modèle, nous pouvons voir que cette similarité n'est pas une coïncidence. En effet, elle s'explique par le choix des hyperparamètres optimaux sélectionnées par `GridSearchCV` pour le noyau polynomial.
+Si nous regardons les hyperparamètres choisis par le modèle, nous pouvons voir que cette similarité n'est pas une coïncidence. En effet, elle s'explique par le choix des hyperparamètres optimaux sélectionnés par `GridSearchCV` pour le noyau polynomial.
 
-Le paramètre important à regarder ici est le degré. Nous pouvons voir que c'est un noyau polynomial de degré $1$ qui a été choisi, ce qui équivalent à un noyau linéaire et c'est donc pour cela que nous obtenons les mêmes résultats au niveau des scores.
+Le paramètre important à regarder ici est le degré. Nous pouvons voir qu'il s'agit d'un noyau polynomial de degré $1$ qui a été choisi, ce qui équivaut à un noyau linéaire et c'est donc pour cela que nous obtenons les mêmes résultats au niveau des scores.
 
-Ainsi, cette sélection automatique du degré $1$ par la validation croisée indique que la frontière de décision optimale pour séparer les classes $1$ et $2$ d'Iris (avec les deux premières variables) est effectivement bien linéaire. Les polynômes de degrés supérieurs testés n'ont pas apporté d'amélioration, probablement car ils introduisent plus de complexité qui mène au surapprentissage sur cet ensemble de données.
+Ainsi, cette sélection automatique du degré $1$ par la validation croisée indique que la frontière de décision optimale pour séparer les classes $1$ et $2$ d'`iris` (avec les deux premières variables) est effectivement linéaire. Les polynômes de degrés supérieurs testés n'ont pas apporté d'amélioration, probablement car ils introduisent plus de complexité qui mène au surapprentissage sur cet ensemble de données.
 
-Cela suggère que, dans l'espace défini par les deux premières variables, les données de ces deux classes d'Iris présentnet une structure essentiellement linéaire, ce qui justifie l'efficacité du noyau linéaire pour ce problème de classification.
+Cela suggère que, dans l'espace défini par les deux premières variables, les données de ces deux classes d'`iris` présentent une structure essentiellement linéaire, ce qui justifie l'efficacité du noyau linéaire pour ce problème de classification.
 
 Afin de vérifier ces résultats, nous allons les tracer en utilisant `frontiere`.
 
 ```{python}
 
-""" # Visualisation des frontières de décision (svm_source.py)
+# Visualisation des frontières de décision (svm_source.py)
 def f_linear(xx):
     return clf_linear.predict(xx.reshape(1, -1))
 
@@ -215,15 +215,15 @@ frontiere(f_poly, X, y)
 plt.title("polynomial kernel")
 
 plt.tight_layout()
-plt.draw() """
+plt.draw()
 
 ```
 
-Ainsi, les graphiques confirment visuellement notre analyse précédente : les fronrières de décision pour les noyaux linéaire et polynomial sont identiques.
+Ainsi, les graphiques confirment visuellement notre analyse précédente : les frontières de décision pour les noyaux linéaire et polynomial sont identiques.
 
-Nous voyons que la frontière de décision est une droite linéaire qui sépare l'espace en deux régions distinctes (bleue et orange). La distribution des données montre qu'il n'y a pas de courbure complexe visible, ce qui justifie que les noyaux polynomiaux de degré supérieurs n'ont pas été sélectionnés.
+Nous voyons que la frontière de décision est une droite qui sépare l'espace en deux régions distinctes (bleue et orange). La distribution des données montre qu'il n'y a pas de courbure complexe visible, ce qui justifie que les noyaux polynomiaux de degré supérieurs n'ont pas été sélectionnés.
 
-De plus, nous observons un chevauchement partiel entre les deux classes (les points bleus et oranges sont mélangés dans certaines zones) ce qui explique pourquoi les scores de classification ne sont pas parfaits ($75\% et $68\%$).
+De plus, nous observons un chevauchement partiel entre les deux classes (les points bleus et oranges sont mélangés dans certaines zones) ce qui explique pourquoi les scores de classification ne sont pas parfaits ($75\%$ et $68\%$).
 
 <a id="part3"></a>
 
@@ -233,7 +233,7 @@ De plus, nous observons un chevauchement partiel entre les deux classes (les poi
 
 Dans cette question, nous nous basons sur une [application](https://scikit-learn.org/1.2/auto_examples/applications/svm_gui.html) qui permet, en temps réel, d'évaluer l'impact du choix du noyau et du paramètre de régularisation $C$.
 
-Pour commencer, nous lançons le script svm_script.py. Ensuite, nous créons un dataset très déséquilibré avec $35$ points bleus ($92\%$) et $3$ points noirs ($8\%$) en essayant de marquer la différence entre la localisation des points bleus et noirs (tout en gardant des débordements).
+Pour commencer, nous lançons le script `svm_script.py`. Ensuite, nous créons un dataset très déséquilibré avec $35$ points bleus ($92\%$) et $3$ points noirs ($8\%$) en essayant de marquer la différence entre la localisation des points bleus et noirs (tout en gardant des débordements).
 
 ::: {#fig-svm layout-ncol=2}
 
@@ -250,16 +250,16 @@ Influence du paramètre C sur un dataset déséquilibré avec noyau linéaire
 
 Nous voyons dans la @fig-svm que :
 
-- Pour $C = 10$ : l'hyperplan est légèrement en diagonal et minimise les erreurs sur toutes les classes (les points noirs sont tous classés ensemble).
+- Pour $C = 10$ : l'hyperplan est légèrement en diagonale et minimise les erreurs sur toutes les classes (les points noirs sont tous classés ensemble).
 - Pour $C = 1$ : l'hyperplan est en diagonale et fait un vrai compromis entre les deux classes. Comme celui avec $C$ plus élevé, il arrive bien à séparer à la fois les bleus et les noirs.
 - Pour $C = 0,1$ : l'hyperplan est quasiment à la verticale, il n'y a que deux points noirs qui sont ensemble et le troisième est mal classé.
 - Pour $C = 0,01$ : l'hyperplan est également à la verticale, il a l'air d'ignorer les points noirs et se contente de séparer les points bleus.
 
-Nous pouvons voir que les $C$ élevés ($10$ et $1$) semblent proches, de mêmes que les $C$ faibles ($0,1$ et $0,01$). Nous voyons que les premiers prennent bien en compte les points minoritaires et les classent de la bonne manière. A contrario, les deux derniers semblent très tolérant aux erreurs : comme les bleus sont majoritaires, ils optimisent uniquement pour eux et négligent les noirs.
+Nous pouvons voir que les $C$ élevés ($10$ et $1$) semblent proches, de même que les $C$ faibles ($0,1$ et $0,01$). Nous voyons que les premiers prennent bien en compte les points minoritaires et les classent de la bonne manière. A contrario, les deux derniers semblent très tolérants aux erreurs : comme les bleus sont majoritaires, ils optimisent uniquement pour eux et négligent les noirs.
 
 Ainsi, nous pouvons en conclure que, lorsque nous diminuons $C$ sur un dataset déséquilibré avec un noyau linéaire, l'hyperplan se déplace pour favoriser la bonne classification de la classe majoritaire et pour maximiser la marge, au détriment de la classe minoritaire. Avec $C$ très faible, le modèle ignore presque complétement les points noirs.
 
-Cela s'explique car le paramètre $C$ contrôle le coût des erreurs de classification. Avec $C$ faible, le modèle préfère un hyperplan simple (avec une grande marge) quitte à faire des erreurs. Sur des données déséquilibrés, ces erreurs affectent principalement la classe minoritaire car elle a moins d'influence sur l'optimisation.
+Cela s'explique car le paramètre $C$ contrôle le coût des erreurs de classification. Avec $C$ faible, le modèle préfère un hyperplan simple (avec une grande marge) quite à faire des erreurs. Sur des données déséquilibrées, ces erreurs affectent principalement la classe minoritaire car elle a moins d'influence sur l'optimisation.
 
 Ce phénomène illustre donc un problème critique en apprentissage automatique sur données déséquilibrées. Lorsque $C$ diminue, le modèle privilégie une marge large (simplicité) au détriment de la précision sur la classe minoritaire.
 
@@ -313,7 +313,7 @@ plt.show()
 Nous observons quelle personne entre les deux étudiées est la plus représentée dans notre jeu de données et à quelle proportion.
 
 ```{python}
-# Code supplémentaire de vérirication/interprétation
+# Code supplémentaire de vérification/interprétation
 
 # Vérifier la distribution des classes
 unique, counts = np.unique(y, return_counts=True)
@@ -328,7 +328,7 @@ print(f"{names[1]} : {class_distrib[1]} images ({class_distrib[1]/len(y)*100:.1f
 
 Nous voyons qu'il y a $357$ images au total et que c'est Colin Powell qui est le plus représenté avec $66,1\%$ des images totales. 
 
-Nous continous en divisant les données en deux sous-ensembles : un ensemble d'entraînement (train) et un ensemble de test (test).
+Nous continuons en divisant les données en deux sous-ensembles : un ensemble d'entraînement (`train`) et un ensemble de test (`test`).
 
 ```{python}
 
@@ -397,18 +397,19 @@ t0 = time()
 
 ```
 
-On peut voir dans la [Figure 3](#fig-cOpti) qu'il y a $92,7\%$ de précision sur l'ensemble de test ce qui est une très bonne performance pour la classification de nos visages. Cela signifie que le modèle prédit correctement l'identité de la personne dans $92\%$ des cas.
+On peut voir dans la [Figure 3](#fig-cOpti) qu'il y a $92,7\%$ de précision sur l'ensemble de test, ce qui est une très bonne performance pour la classification de nos visages. Cela signifie que le modèle prédit correctement l'identité de la personne dans $93\%$ des cas.
 
 De plus, nous voyons que la courbe montre trois zones distinctes : 
-- Pour $C < 10^{-4}$ : les scores sont faibles. La régularisation est excessive,le modèle est trop simple et sous-apprend. De plus, la marge doit être trop large ce qui permet trop d'erreurs.
+
+- Pour $C < 10^{-4}$ : les scores sont faibles. La régularisation est excessive, le modèle est trop simple et sous-apprend. De plus, la marge doit être trop large ce qui permet trop d'erreurs.
 - Pour $10^{-4} ≤ C ≤ 10^{-3}$ : les scores augmentent jusqu'à un pic optimal (pour $C = 0,001$). Nous avons le meilleur compromis biais-variance car le modèle capture la structure des données sans sous ou sur apprendre.
 - Pour $C > 10^{-3}$ : les scores se stabilisent en un plateau. La performance n'augmente plus car le modèle est déjà suffisamment complexe. Donc, augmenter $C$ ne sert plus à rien et nous risquons de faire apparaître du sur-apprentissage.
 
-Ainsi, le SVM avec $C = 0.001$ et le noyau linéaire offre une très bonne performance ($92.7%$) pour cette tâche de reconnaissance faciale : il est suffisamment élevé pour permettre au modèle de capturer les différences entre les visages mais reste assez bas pour éviter de sur-ajuster les particularités de l'ensemble d'entraînement (expressions faciales, accessoires, éclairage, etc.).
+Ainsi, le SVM avec $C = 0.001$ et le noyau linéaire offre une très bonne performance ($92.7\%$) pour cette tâche de reconnaissance faciale : il est suffisamment élevé pour permettre au modèle de capturer les différences entre les visages mais reste assez bas pour éviter de sur-ajuster les particularités de l'ensemble d'entraînement (expressions faciales, accessoires, éclairage, etc.).
 
-De plus, nous pouvons en déduire qu'il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu'un $C$ pas trop grand aide à ignorer ce bruit. En effet, le fait que la performance n'augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l'espace des caractéristiques.
+De plus, nous pouvons en déduire qu'il y a probablement du bruit ou des variations dans les images (éclairage, expression, etc.) ce qui permet qu'une valeur de $C$ pas trop élevée aide à ignorer ce bruit. En effet, le fait que la performance n'augmente pas pour des C plus grands suggère que le noyau linéaire capture bien la structure des données dans l'espace des caractéristiques.
 
-Ainsi, à partir de ce classificateur optimal, nous cherchons maintenant à prédire les étiquettes pour les images $X_test$.
+Ainsi, à partir de ce classificateur optimal, nous cherchons maintenant à prédire les étiquettes pour les images $X_{test}$.
 
 ```{python}
 
@@ -429,9 +430,9 @@ print("Accuracy : %s" % clf.score(X_test, y_test))
 
 Nous pouvons voir que nous avons un niveau de chance de $66\%$, ce qui correspond à la précision qu'on obtiendrait en prédisant toujours la classe majoritaire (dans notre cas Colin Powell). C'est-à-dire qu'un classificateur naïf qui prédirait toujours Colin Powell aurait $66\%$ de précision. Cela correspond donc à notre borne inférieur : tout modèle doit faire mieux que ça.
 
-Ensuite, nous voyons que nous obtenons une précision de $92,7\%$, comme nous l'avions vu précédemment pour un $C = 0,001$. En le comparant à notre niveau de base à absolument dépasser pour faire mieux qu'une prédiction naïve, nous voyons que la différence est très importante entre le deux. En effet, le modèle a réellement appris à distinguer les deux personnes et ne se contente pas de prédire la classe majoritaire. 
+Ensuite, nous obtenons une précision de $92,7\%$, comme nous l'avions vu précédemment pour un $C = 0,001$. En le comparant à notre niveau de base à absolument dépasser pour faire mieux qu'une prédiction naïve, nous voyons que la différence est très importante entre les deux. En effet, le modèle a réellement appris à distinguer les deux personnes et ne se contente pas de prédire la classe majoritaire. 
 
-Maintenant après avoir évalués quantitativement nos prédictions, nous avons les évaluer qualitativement à l'aide la librairie `matplotlib`.
+Maintenant, après avoir évalué quantitativement nos prédictions, nous allons les évaluer qualitativement à l'aide la librairie `matplotlib`.
 
 <a id="fig-heatmap"></a>
 
@@ -458,25 +459,27 @@ plt.show()
 
 ```
 
-La [galerie d'images](#fig-heatmap) permet d'évaluer visuellemtn les performances du modèles. On peut voir que la majorité des visages sont correctement classés (seulement $2$ erreurs sur les prédictions de Powell, ce qui correspond ici à environ $83\%$ de prédiction correcte). On voit également que le modèle a réussit à identifier les personnes mêmes avec des variations comme les expressions faciales, les angles de vue, les conditions d'éclairage ou encore la présence/absence de lunettes.
+La [galerie d'images](#fig-heatmap) permet d'évaluer visuellement les performances du modèle. On peut voir que la majorité des visages sont correctement classés (seulement $2$ erreurs sur les prédictions de Powell, ce qui correspond ici à environ $83\%$ de prédiction correcte). On voit également que le modèle a réussi à identifier les personnes même avec des variations comme les expressions faciales, les angles de vue, les conditions d'éclairage ou encore la présence/absence de lunettes.
 
-La [deuxième image](#fig-heatmap) montre une heatmap, qui indique les poids du modèle SVM linéaire sous forme d'image :
+La [deuxième image](#fig-heatmap) montre une heatmap qui indique les poids du modèle SVM linéaire sous forme d'image :
 
-- Les zones jaunes : indiquent les caractéristiques de la première classe (Colin Powell).
-- Les zones bleus foncées : indiquent les caractéristiques de la deuxième classe (Donald Rumself).
-- Les zones turquoise : indiquent que les pixels sont peu disciminant et n'aide pas à identifier la personne (poids proches de $0$).
+- Les zones jaunes : elles indiquent les caractéristiques de la première classe (Colin Powell).
+- Les zones bleus foncées : elles indiquent les caractéristiques de la deuxième classe (Donald Rumself).
+- Les zones turquoise : elles indiquent que les pixels sont peu disciminants et n'aident pas à identifier la personne (poids proches de $0$).
 
-Plus spécifiquement, nous voyons sur notre image qu'il y a des tâches jaunes principalement au centre de la photo ce qui pourrait correspondre aux zones du nez et des yeux. De plus, nous voyons un tâche bleu foncée en dessous de celles jaunes qui semble être la zone de la bouche ou du menton, et qui permet d'identifier la seconde personne. Toutes ces zones décrites sont celles qui permettent le mieux d'identifier si nous sommes en présence de Colin Powell ou de Donald Rumself. Ainsi, en se basant sur le turquoise, nous pouvons voir que l'arrière plan n'aide pas à discriminer la personne dans notre modèle, ce qui est cohérent car nous avons vu qu'il changeait sur chaque photographie.
+Plus spécifiquement, nous voyons sur notre image qu'il y a des tâches jaunes principalement au centre de la photo, ce qui pourrait correspondre aux zones du nez et des yeux. De plus, nous voyons une tâche bleue foncée en dessous des jaunes, qui semble être la zone de la bouche ou du menton et qui permet d'identifier la seconde personne. Toutes ces zones décrites sont celles qui permettent le mieux d'identifier si nous sommes en présence de Colin Powell ou de Donald Rumself. Ainsi, en se basant sur le turquoise, nous pouvons voir que l'arrière plan n'aide pas à discriminer la personne dans notre modèle, ce qui est cohérent car nous avons vu qu'il changeait sur chaque photographie.
 
-Ainsi, nous pouvons dire que le SVM linéaire a appris à se concentrer sur les régions centrales du visage qui contiennent effectivement le plus d'informations discriminantes. Le fait que les poids les plus élevés soient localisés et non diffus suggère que le modèle semble avoir identifié des patterns cohérents plutôt que du bruit aléatoire. De plus, il nous semble distinguer un visage dans la heatmap ce qui appuie cette dernière conclusion.
+Ainsi, nous pouvons dire que le SVM linéaire a appris à se concentrer sur les régions centrales du visage qui contiennent effectivement le plus d'informations discriminantes. Le fait que les poids les plus élevés soient localisés et non diffus suggère que le modèle semble avoir identifié des patterns cohérents plutôt que du bruit. De plus, il nous semble distinguer un visage dans la heatmap, ce qui appuie cette dernière conclusion.
 
 ### 4.2. Question 5.
 
-Nous allons maintenant ajouter $300$ variables de nuisance afin de vérifier si la performance chute bien. Cela est dû car le nombre de variables à nombre de points d'apprentissage fixé augmente.
+Nous allons maintenant ajouter $300$ variables de nuisance afin de vérifier si la performance chute bien (ce qui serait dû au nombre de variables à nombre de points d'apprentissage fixé qui augmente).
 
 ```{python}
 
-# Fonction pour entraîner et évaluer un SVM avec validation croisée.
+np.random.seed(42) # graine
+
+# Fonction pour entraîner et évaluer un SVM avec validation croisée
 def run_svm_cv(_X, _y):
     # Ajout de la graine
     np.random.seed(42)
@@ -515,35 +518,40 @@ noise = sigma * np.random.randn(n_samples, 300, )
 X_noisy = np.concatenate((X, noise), axis=1)
 
 # Permutation pour mélanger les lignes
-np.random.seed(42) # graine
 X_noisy = X_noisy[np.random.permutation(X.shape[0])]
 
 run_svm_cv(X_noisy, y)
 
 ```
 
-Nous avons donc ajouté $300$ variables de nuisances générées à partir d'un bruit gaussien de variance $\sigma = 1$. Les résultats montrent que le modèle mémorise toujours bien les données d'entraînement ($1.0$ donc $100\%$) mais est un signe de sur-apprentissage. De plus, la précision sur le test chute de $33,5\%$ pour passer à $59,2\%$ ce qui cause, en plus, une énorme différence entre le score de nos données de train et celle de test et montre que le modèle ne généralise plus. Enfin, nous voyons que ce modèle est moins performant que le niveau de chance, c'est-à-dire qu'il vaut mieux toujours prédire la classe majoritaire plutôt qu'utiliser ce modèle qui va se tromper plus de fois.
+Nous avons donc ajouté $300$ variables de nuisances générées à partir d'un bruit gaussien de variance $\sigma = 1$. Les résultats montrent que le modèle mémorise toujours bien les données d'entraînement ($1.0$ donc $100\%$) mais cette valeur peut indiquer un sur-apprentissage. De plus, la précision sur le test chute pour passer à $63,7\%$ ce qui cause une énorme différence entre le score de nos données de train et celle de test et montre que le modèle ne généralise plus. Enfin, nous voyons que ce modèle est moins performant que le niveau de chance, c'est-à-dire qu'il vaut mieux toujours prédire la classe majoritaire plutôt qu'utiliser ce modèle qui va se tromper plus de fois.
 
-Donc, le SVM linéaire tente d'utiliser toutes les variables (signal et bruit) car il ne peut pas distinguer automatiquement les variables utilies du bruit impliquant que les $300$ variables de bruits noient les centaines de variables utiles. Ainsi, le ratio signal/bruit devient défavorable et conduit notre modèle à avoir une performance inférieure au hasard.
+Donc, le SVM linéaire tente d'utiliser toutes les variables (signal et bruit) car il ne peut pas distinguer automatiquement les variables utiles du bruit ce qui implique que les $300$ variables de bruits noient les centaines de variables utiles. Ainsi, le ratio signal/bruit devient défavorable et conduit notre modèle à une performance inférieure au hasard.
 
 ### 4.3. Question 6.
 
-Afin de remédier au problème de données bruitées que nous avons observés lors de la questions précédente, nous allons améliorer la prédiction à l'aide d'une méthode de réduction de dimension. Cette méthode est l'Analyse en Composantes Principales (ACP) qui projette les données dans un espace de dimension réduite.
+Afin de remédier au problème de données bruitées que nous avons observé lors de la question précédente, nous allons améliorer la prédiction à l'aide d'une méthode de réduction de dimension. Cette méthode est l'Analyse en Composantes Principales (ACP) qui projette les données dans un espace de dimension réduite.
 
 Cette méthode a plusieurs avantages dans notre cas : 
 
-- Filtrage du bruit : les variables de nuisance sont du bruit gaussin indépendant, donc elles ont une variable faible et aléatoire. Les composantes principales capturent d'abord la structure systématique (ici les visages) et donc le bruit se retrouve dans les composantes de faible variance et est éliminé.
-- Concentration de l'information : les $n$ premières composantes capturent un certain pourcentage de la variance totale (nous allons le voir par la suite dans le \hyperref{tableau récapitulatif}). Cette variance correspond principalement aux vrais caractéristiques faciales. Ainsi, on passe de plus de $400$ dimension à $20$, donc le ration entre le signal et le bruit est nettement amélioré.
+- Filtrage du bruit : les variables de nuisance sont du bruit gaussien indépendant. Comme les composantes principales capturent d'abord la structure systématique (ici les visages), le bruit se retrouve dans les composantes de faible variance et est éliminé.
+- Concentration de l'information : les $n$ premières composantes capturent un certain pourcentage de la variance totale (nous allons le voir par la suite dans le [tableau récapitulatif](#tableau)). Cette variance correspond principalement aux vraies caractéristiques faciales. Ainsi, on passe de plus de $400$ dimension à $20$, donc le ratio entre le signal et le bruit est nettement amélioré.
 
-Nous testons différentes valeurs de $n$ composantes pour pouvoir les comparer entre elles et identifier le nombre optimal de composantes princpales. Le choix de $n$ est très important et nous allons essayer de voir son ordre de grandeur optimal car trop peu de composants et on perd du signal utile mais trop de composant et on conserve du bruit.
+Nous testons différentes valeurs de $n$ (nombre de composantes) pour pouvoir les comparer entre elles et identifier le nombre optimal de composantes principales. Le choix de $n$ est très important et nous allons essayer de voir son ordre de grandeur optimal : 
 
-Nous avons écrit le code suivant pour un $n = 20$ et l'avons ensuite modifié en changeant juste ce paramètre.
+- Trop peu de composants entraîne une perte de signal utile.
+- Trop de composantes et nous conservons du bruit.
+
+Nous avons écrit le code suivant pour $n = 20$ et l'avons ensuite modifié en changeant juste ce paramètre.
 
 ```{python}
 
 """ # Décommenter le code pour le faire tourner (attention, environ 20 minutes de chargement)
 
 print("Score apres reduction de dimension")
+
+# Graine fixée
+np.random.seed(42)
 
 # Nombre de composantes principales à conserver
 n_components = 20  # jouer avec ce parametre
@@ -560,6 +568,8 @@ run_svm_cv(X_noisy_pca, y) """
 ```
 
 Nous avons obtenu les scores suivants : 
+
+<a id="tableau"></a>
 
 ::: {#tbl-pca}
 
@@ -582,25 +592,37 @@ Impact du nombre de composantes de l'ACP sur les scores du modèle de classifica
 
 Afin d'identifier le nombre optimal de composantes principales et de déterminer le seuil à partir duquel apparaît l'overfitting, nous avons testé une large gamme de valeurs : $n = 2, 5, 10, 15, 20, 25, 30, 50, 100, 200$. Cette exploration systématique nous permet d'observer l'évolution des performances et de caractériser précisément le comportement du modèle en fonction de la dimensionnalité.
 
-Au niveau du lancement du code, le temps de calcul s'est révélé particulièrement long pour cette expérimentation. L'exécution complète a nécessité environ $20$ minutes pour toutes les valeurs de $n$ testées, à l'exception notable de $n=100$ et $n=200$ qui ont été nettement plus rapides. Cette différence s'explique par le fait que pour les faibles valeurs de $n$ ($≤ 30$), l'algorithme d'optimisation du SVM doit explorer un espace de solutions plus contraint avec moins de degrés de liberté, ce qui peut paradoxalement ralentir la convergence. À l'inverse, pour $n=100$ et $n=200$, bien que le nombre de composante soit plus élevée, l'algorithme converge plus rapidement car les données deviennent linéairement séparables dans cet espace de grande dimension (au prix d'un overfitting massif).
+Au niveau du lancement du code, le temps de calcul s'est révélé particulièrement long pour cette expérimentation. L'exécution complète a nécessité environ $20$ minutes pour chaque les valeurs de $n$ testées, à l'exception de $n=100$ et $n=200$ qui ont été nettement plus rapides ($5$ secondes). Cette différence s'explique par le fait que pour $n=100$ et $n=200$, bien que le nombre de composante soit plus élevé, l'algorithme converge plus rapidement car les données deviennent linéairement séparables dans cet espace de grande dimension (au prix d'un overfitting massif).
 
-A partir de ce tableau, un premier élément particulièrement anormal attire notre attention : le score d'entraînement ne croît pas de manière monotone avec le nombre de composantes. En théorie, lorsque nous augmentons le nombre de composantes, nous donnons au modèle plus d'informations pour ajuster les données d'entraînement. Le score train devrait donc augmenter (ou du moins rester constant) mais jamais diminuer. Or, nous observons des scores de $69,1\%$ pour $n = 2$, puis $64,6\%$ pour $n = 10$, avant de remonter à $77,0\%$ pour $n = 50$. Cette non-monotonie est anormale.
+A partir de ce tableau, un premier élément particulièrement anormal attire notre attention : le score d'entraînement ne croît pas de manière monotone avec le nombre de composantes. En théorie, lorsque nous augmentons le nombre de composantes, nous donnons au modèle plus d'informations pour ajuster les données d'entraînement. Le score `train` devrait donc augmenter (ou du moins rester constant) mais jamais diminuer. Or, nous observons des scores de $69,1\%$ pour $n = 2$, puis $64,6\%$ pour $n = 10$, avant de remonter à $77,0\%$ pour $n = 50$. Cette non-monotonie est anormale.
 
-L'explication principale réside dans un problème méthodologique. En effet, la fonction `run_svm_cv` effectue systématiquement un nouveau split aléatoire des données à chaque appel via `np.random.permutation(X.shape[0])`. Ainsi, chaque valeur de n est évaluée sur un ensemble d'entraînement différent, ce qui introduit de la variabilité aléatoire et empêche toute comparaison rigoureuse. Même si le code fourni permet de fixer une graine aléatoire avant l'appel à `run_svm_cv`, rendant possible la reproductibilité pour chaque $n$, la comparaison directe entre les différentes valeurs de $n$ n'est pas vraiment possible car l'aléatoire diffère entre chaque valeur. Cette instabilité méthodologique explique les fluctuations observées sur le train.
+Une explication potentielle pourrait venir d'un problème méthodologique. En effet, la fonction `run_svm_cv` effectue systématiquement un nouveau split aléatoire des données à chaque appel via `np.random.permutation(X.shape[0])`. Ainsi, chaque valeur de $n$ est évaluée sur un ensemble d'entraînement différent, ce qui introduit de la variabilité aléatoire et empêche toute comparaison rigoureuse. Même si le code fourni permet de fixer une graine aléatoire avant l'appel à `run_svm_cv`, rendant possible la reproductibilité pour chaque $n$, la comparaison directe entre les différentes valeurs de $n$ n'est pas vraiment possible car l'aléatoire diffère entre chaque valeur. Cette instabilité méthodologique explique les fluctuations observées sur le `train`.
 
-Concernant le score de test, nous observons une tendance plus claire : les performances augmentent légèrement jusqu'à $n = 10$ composantes où nous atteignons $66,5\%$, puis diminuent progressivement pour stagner autour de $54\%$ pour $n≥50$. Le meilleur compromis semble donc se situer autour de $n=10$ composantes. Cependant, même ce "meilleur" résultat reste décevant avec seulement $66,5\%$ de précision, à peine au-dessus du niveau de chance ($66\%$). Cela suggère que les $300$ variables de nuisance ont tellement dégradé le signal que même avec une réduction de dimension optimale, nous ne parvenons pas à retrouver les performances initiales ($~92\%$).
+Concernant le score de `test`, nous observons une tendance plus claire : les performances augmentent légèrement jusqu'à $n = 10$ composantes où nous atteignons $66,5\%$, puis diminuent progressivement pour stagner autour de $54\%$ pour $n≥50$. Le meilleur compromis semble donc se situer autour de $n=10$ composantes. Cependant, même ce "meilleur" résultat reste décevant avec seulement $66,5\%$ de précision, à peine au-dessus du niveau de chance ($66\%$). Cela suggère que les $300$ variables de nuisance ont tellement dégradé le signal que même avec une réduction de dimension optimale, nous ne parvenons pas à retrouver les performances initiales ($~92\%$).
 
-Enfin, l'écart entre train et test révèle un phénomène critique : pour $n≤20$ composantes, l'écart reste faible (entre $0,4\%$ et $8,8\%$), indiquant que le modèle généralise correctement. En revanche, au-delà de $n=20$, l'écart explose littéralement : $23,4\%$ pour $n=50$, $34,6\%$ pour $n=100$, et $42,4\%$ pour $n=200$. Ce phénomène d'overfitting massif s'explique par le fait que les composantes principales de rang élevé ne capturent plus du signal discriminant mais principalement du bruit structuré. Le modèle mémorise ces patterns bruités sur l'ensemble d'entraînement (d'où le score train atteignant $96,6\%$ pour $n=200$), mais ces patterns artificiels ne se généralisent absolument pas au test (qui stagne à $54\%$). Ainsi, augmenter le nombre de composantes au-delà de $20$ ne fait qu'amplifier le sur-apprentissage sans apporter aucun gain en généralisation.
+Enfin, l'écart entre `train` et `test` révèle un phénomène critique : pour $n≤20$ composantes, l'écart reste faible (entre $0,4\%$ et $8,8\%$), indiquant que le modèle généralise correctement. En revanche, au-delà de $n=20$, l'écart explose littéralement : $23,4\%$ pour $n=50$, $34,6\%$ pour $n=100$, et $42,4\%$ pour $n=200$. Ce phénomène d'overfitting massif s'explique par le fait que les composantes principales de rang élevé ne capturent plus du signal discriminant mais principalement du bruit structuré. Le modèle mémorise ces patterns bruités sur l'ensemble d'entraînement (d'où le score `train` atteignant $96,6\%$ pour $n=200$), mais ces patterns artificiels ne se généralisent absolument pas au test (qui stagne à $54\%$). Ainsi, augmenter le nombre de composantes au-delà de $20$ ne fait qu'amplifier le sur-apprentissage sans apporter aucun gain en généralisation.
 
 Ce résultat illustre un principe important en machine learning : plus de variables n'est pas toujours mieux (overfitting).
 
 ### 4.4. Question 7.
 
-Il existe un biais dans notre prétraitement des données. En effet, au niveau de la question 4, la standardisation est effectuée sur l'ensemble complet des données avant la séparation en un échantillon d'entraînement et un autre de test. Donc, cela pose problème car les statistiques (moyenne et écart-type) sont calculées en incluant les données de test. Ainsi, le modèle a indirectement accès à des informations de l'échantillon de test pendant l'entraîbement, ce qui crée une fuite d'information. Donc, les performances mesurées sont surestimées car le modèle bénéficie d'information qu'il ne devrait pas avoir en situation réelle.
+Il existe un biais dans notre prétraitement des données. En effet, au niveau de la question 4, la standardisation est effectuée sur l'ensemble complet des données avant la séparation en un échantillon d'entraînement et un autre de test. Donc, cela pose problème car les statistiques (moyenne et écart-type) sont calculées en incluant les données de test. Ainsi, le modèle a indirectement accès à des informations de l'échantillon de test pendant l'entraînement, ce qui crée une fuite d'information. Donc, les performances mesurées sont surestimées car le modèle bénéficie d'informations qu'il ne devrait pas avoir en situation réelle. Cela peut également avoir un impact sur l'ACP qui en découle.
 
-La bonne pratique serait de standardiser en utilisant uniquement les données, et statistiques associées, de l'échantillon d'entraînement.
+La bonne pratique serait de standardiser en utilisant uniquement les données et statistiques associées de l'échantillon d'entraînement.
+
+De plus, comme nous l'avons vu juste au-dessus, il existe un biais au niveau de la permutation, ce qui complique la comparaison des scores et leur interprétation.
 
 ## 5. Conclusion
+
+Au cours de ce TP, nous avons exploré la méthode des Support Vector Machines (SVM) à travers trois applications progressives.
+
+Sur le jeu de données `iris`, la comparaison des noyaux linéaire et polynomial a révélé que la structure des données est essentiellement linéaire, avec des scores de $75\%$ en entraînement et $68\%$ en test indiquant une généralisation correcte mais moyenne. L'exploration avec `svm_gui.py` a ensuite démontré l'impact critique du paramètre $C$ sur données déséquilibrées : avec $C$ faible, l'hyperplan privilégie systématiquement la classe majoritaire, négligeant la classe minoritaire.
+
+Nous avons ensuite fait une application basée sur la reconnaissance faciale. Avec un noyau linéaire optimal ($C = 0.001$), nous avons atteint $92,7\%$ de précision, bien au-dessus du niveau de chance ($66\%$). La visualisation des poids a confirmé que le modèle se focalise correctement sur les régions discriminantes (yeux, nez, bouche). Cependant, l'ajout de $300$ variables de nuisance a provoqué une chute à $63,7\%$, démontrant la vulnérabilité des SVM face au bruit. L'ACP a partiellement résolu ce problème avec un optimum à $n=10$ composantes ($66,5\%$), mais au-delà de $n=20$, nous avons observé un overfitting massif confirmant qu'un nombre excessif de variables conduit au sur-apprentissage.
+
+Ce TP a également révélé des limites méthodologiques importantes : la standardisation avant séparation train/test crée une fuite d'information surestimant les performances et les permutations aléatoires successives compliquent la comparaison rigoureuse entre configurations.
+
+En conclusion, la présence de bruit peut dégrader de façon importante les performances, ce qui souligne l'importance de techniques comme l'ACP pour filtrer les variables non informatives. Plus généralement, ce travail rappelle qu'augmenter la complexité d'un modèle n'améliore pas nécessairement ses performances et que la validation méthodologique rigoureuse reste essentielle pour garantir des résultats fiables et généralisables.
 
 ## 6. Sources
 
