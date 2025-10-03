@@ -21,3 +21,7 @@ ENV/
 # Dossier de scripts
 script_files/
 
+# R
+.Rhistory
+
+
