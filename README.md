@@ -13,7 +13,7 @@ Ce projet explore l'utilisation des SVM pour la classification binaire et multi-
 
 Les prérequis sont :
 - Python (version supérieure à 3.8)
-- Git
+- Github
 
 Pour lancer le projet :
 - Cloner le dépôt.
