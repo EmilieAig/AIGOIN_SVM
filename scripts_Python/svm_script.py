@@ -308,8 +308,9 @@ plt.show()
 #%%
 # Q5
 
+np.random.seed(42)
+
 def run_svm_cv(_X, _y):
-    np.random.seed(42) # seed
     _indices = np.random.permutation(_X.shape[0])
     _train_idx, _test_idx = _indices[:_X.shape[0] // 2], _indices[_X.shape[0] // 2:]
     _X_train, _X_test = _X[_train_idx, :], _X[_test_idx, :]
@@ -327,13 +328,13 @@ print("Score sans variable de nuisance")
 run_svm_cv(X, y)
 
 print("Score avec variable de nuisance")
+
 n_features = X.shape[1]
-# Add nuisance variables
+# On rajoute des variables de nuisances
 sigma = 1
 noise = sigma * np.random.randn(n_samples, 300, ) 
 #with gaussian coefficients of std sigma
 X_noisy = np.concatenate((X, noise), axis=1)
-np.random.seed(42) # seed
 X_noisy = X_noisy[np.random.permutation(X.shape[0])]
 run_svm_cv(X_noisy, y)
 
@@ -343,8 +344,10 @@ run_svm_cv(X_noisy, y)
 # Q6
 print("Score apres reduction de dimension")
 
-n_components = 15  # jouer avec ce parametre
-pca = PCA(n_components=n_components, random_state=42).fit(X_noisy)
+np.random.seed(42)
+
+n_components = 20  # jouer avec ce parametre
+pca = PCA(n_components=n_components).fit(X_noisy)
 X_noisy_pca = pca.transform(X_noisy)
 run_svm_cv(X_noisy_pca, y)
 

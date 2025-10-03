@@ -565,22 +565,34 @@ Nous avons obtenu les scores suivants :
 
 | Nombre de composantes | Score Train | Score Test | Écart |
 |:---------------------:|:-----------:|:----------:|:-----:|
-| 2                     | 0,635       | 0,687      | 0,52%  |
-| 5                     | 0,635       | 0,687      | 0,52%  |
-| 10                    | 0,635       | 0,687      | 0,52%  |
-| 15                    | 0,       | 0,      | %  |
-| 20                    | 0,       | 0,      | %  |
-| 25                    | 0,       | 0,      | %  |
-| 30                    | 0,       | 0,      | %  |
-| 50                    | 0,       | 0,      | x.x%  |
-| 100                   | 0,843       | 0,570      | 2,73%  |
-| 200                   | 1,000       | 0,603      | 3,97%  |
+| 2                     | 0,691       | 0,631      | 6,0%  |
+| 5                     | 0,663       | 0,659      | 0,4%  |
+| 10                    | 0,646       | 0,665      | 1,9%  |
+| 15                    | 0,691       | 0,631      | 6,0%  |
+| 20                    | 0,646       | 0,642      | 0,4%  |
+| 25                    | 0,697       | 0,631      | 6,6%  |
+| 30                    | 0,691       | 0,603      | 8,8%  |
+| 50                    | 0,770       | 0,536      | 23,4% |
+| 100                   | 0,888       | 0,542      | 34,6% |
+| 200                   | 0,966       | 0,542      | 42,1% |
 
 Impact du nombre de composantes de l'ACP sur les scores du modèle de classification
 
 :::
 
-Donc, nous pouvons voir que l'ACP démontre son efficacité comme technique de débruitage et de réduction de dimension. En projetant les données bruitées dans un sous-espace de dimension $??$, elle élimine les variables parasites tout en préservant les caractéristiques discriminantes des visages. Ce résultat illustre un principe important en machine learning : plus de variables n'est pas toujours mieux (overfitting).
+Afin d'identifier le nombre optimal de composantes principales et de déterminer le seuil à partir duquel apparaît l'overfitting, nous avons testé une large gamme de valeurs : $n = 2, 5, 10, 15, 20, 25, 30, 50, 100, 200$. Cette exploration systématique nous permet d'observer l'évolution des performances et de caractériser précisément le comportement du modèle en fonction de la dimensionnalité.
+
+Au niveau du lancement du code, le temps de calcul s'est révélé particulièrement long pour cette expérimentation. L'exécution complète a nécessité environ $20$ minutes pour toutes les valeurs de $n$ testées, à l'exception notable de $n=100$ et $n=200$ qui ont été nettement plus rapides. Cette différence s'explique par le fait que pour les faibles valeurs de $n$ ($≤ 30$), l'algorithme d'optimisation du SVM doit explorer un espace de solutions plus contraint avec moins de degrés de liberté, ce qui peut paradoxalement ralentir la convergence. À l'inverse, pour $n=100$ et $n=200$, bien que le nombre de composante soit plus élevée, l'algorithme converge plus rapidement car les données deviennent linéairement séparables dans cet espace de grande dimension (au prix d'un overfitting massif).
+
+A partir de ce tableau, un premier élément particulièrement anormal attire notre attention : le score d'entraînement ne croît pas de manière monotone avec le nombre de composantes. En théorie, lorsque nous augmentons le nombre de composantes, nous donnons au modèle plus d'informations pour ajuster les données d'entraînement. Le score train devrait donc augmenter (ou du moins rester constant) mais jamais diminuer. Or, nous observons des scores de $69,1\%$ pour $n = 2$, puis $64,6\%$ pour $n = 10$, avant de remonter à $77,0\%$ pour $n = 50$. Cette non-monotonie est anormale.
+
+L'explication principale réside dans un problème méthodologique. En effet, la fonction `run_svm_cv` effectue systématiquement un nouveau split aléatoire des données à chaque appel via `np.random.permutation(X.shape[0])`. Ainsi, chaque valeur de n est évaluée sur un ensemble d'entraînement différent, ce qui introduit de la variabilité aléatoire et empêche toute comparaison rigoureuse. Même si le code fourni permet de fixer une graine aléatoire avant l'appel à `run_svm_cv`, rendant possible la reproductibilité pour chaque $n$, la comparaison directe entre les différentes valeurs de $n$ n'est pas vraiment possible car l'aléatoire diffère entre chaque valeur. Cette instabilité méthodologique explique les fluctuations observées sur le train.
+
+Concernant le score de test, nous observons une tendance plus claire : les performances augmentent légèrement jusqu'à $n = 10$ composantes où nous atteignons $66,5\%$, puis diminuent progressivement pour stagner autour de $54\%$ pour $n≥50$. Le meilleur compromis semble donc se situer autour de $n=10$ composantes. Cependant, même ce "meilleur" résultat reste décevant avec seulement $66,5\%$ de précision, à peine au-dessus du niveau de chance ($66\%$). Cela suggère que les $300$ variables de nuisance ont tellement dégradé le signal que même avec une réduction de dimension optimale, nous ne parvenons pas à retrouver les performances initiales ($~92\%$).
+
+Enfin, l'écart entre train et test révèle un phénomène critique : pour $n≤20$ composantes, l'écart reste faible (entre $0,4\%$ et $8,8\%$), indiquant que le modèle généralise correctement. En revanche, au-delà de $n=20$, l'écart explose littéralement : $23,4\%$ pour $n=50$, $34,6\%$ pour $n=100$, et $42,4\%$ pour $n=200$. Ce phénomène d'overfitting massif s'explique par le fait que les composantes principales de rang élevé ne capturent plus du signal discriminant mais principalement du bruit structuré. Le modèle mémorise ces patterns bruités sur l'ensemble d'entraînement (d'où le score train atteignant $96,6\%$ pour $n=200$), mais ces patterns artificiels ne se généralisent absolument pas au test (qui stagne à $54\%$). Ainsi, augmenter le nombre de composantes au-delà de $20$ ne fait qu'amplifier le sur-apprentissage sans apporter aucun gain en généralisation.
+
+Ce résultat illustre un principe important en machine learning : plus de variables n'est pas toujours mieux (overfitting).
 
 ### 4.4. Question 7.
 
